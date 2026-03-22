@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RestourantServiceApp.Core.Enums;
+using RestourantServiceApp.Core.Models.Common;
 
 namespace RestourantServiceApp.Core.Models
 {
-	public class MenuItem
+	public class MenuItem : BaseEntity
 	{
+		public string Name { get; set; } = null!;
+		public decimal Price { get; set; }
+		public Category Category { get; set; }
+		public OrderItem OrderItem { get; set; }
 	}
 }
