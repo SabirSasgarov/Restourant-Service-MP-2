@@ -22,8 +22,7 @@ namespace RestourantServiceApp.DataAccsessLayer.Configurations
 
 			builder
 				.Property(o => o.Date)
-				.IsRequired()
-				.HasDefaultValue(DateTime.Now);
+				.IsRequired();
 
 			builder
 				.HasMany(o => o.OrderItems)

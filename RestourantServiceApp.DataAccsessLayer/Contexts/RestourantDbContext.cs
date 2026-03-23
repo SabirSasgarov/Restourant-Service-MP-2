@@ -21,5 +21,20 @@ namespace RestourantServiceApp.DataAccsessLayer.Contexts
 			base.OnModelCreating(modelBuilder);
 		}
 
+		public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+		{
+			var entries = ChangeTracker.Entries<Order>().ToList();
+
+			foreach (var entry in entries)
+			{
+				if (entry.State == EntityState.Added)
+				{
+					entry.Entity.Date = DateTime.Now;
+				}
+			}
+
+			return base.SaveChangesAsync(cancellationToken);
+		}
+
 	}
 }

@@ -6,6 +6,6 @@ namespace RestourantServiceApp.Core.Models
 	{
 		public decimal TotalAmount {  get; set; }
 		public DateTime	Date {  get; set; }
-		public List<OrderItem> OrderItems {  get; set; }
+		public List<OrderItem> OrderItems {  get; set; } = null!;
 	}
 }

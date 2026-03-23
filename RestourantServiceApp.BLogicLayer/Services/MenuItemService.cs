@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.Core.Enums;
 using RestourantServiceApp.Core.Models;
 using RestourantServiceApp.DataAccsessLayer.Contexts;
@@ -6,7 +7,7 @@ using System.ComponentModel;
 
 namespace RestourantServiceApp.BLogicLayer.Services
 {
-	public class MenuItemService(RestourantDbContext context)
+	public class MenuItemService(RestourantDbContext context) : IMenuItemService
 	{
 		public async Task<List<MenuItem>> GetMenuItems()
 		=> await context.MenuItems
@@ -44,7 +45,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 			if (menuItem == null)
 				throw new InvalidOperationException("Menu item not found.");
-			
+
 			menuItem.Name = name;
 			menuItem.Price = price;
 
@@ -60,13 +61,13 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 		public async Task<List<MenuItem>> GetMenuItemsInRange(decimal startPrice, decimal finalPrice)
 		=> await context.MenuItems
-			.Where(mi => mi.Price >= startPrice && mi.Price<=finalPrice)
+			.Where(mi => mi.Price >= startPrice && mi.Price <= finalPrice)
 			.AsNoTracking()
 			.ToListAsync();
 
 		public async Task<List<MenuItem>> GetMenuItemsBySearch(string search)
 		{
-			if(string.IsNullOrWhiteSpace(search))
+			if (string.IsNullOrWhiteSpace(search))
 				return await context.MenuItems
 					.AsNoTracking()
 					.ToListAsync();

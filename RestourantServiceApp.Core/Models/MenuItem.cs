@@ -8,6 +8,6 @@ namespace RestourantServiceApp.Core.Models
 		public string Name { get; set; } = null!;
 		public decimal Price { get; set; }
 		public Category Category { get; set; }
-		public OrderItem OrderItem { get; set; }
+		public OrderItem OrderItem { get; set; } = null!;
 	}
 }
