@@ -10,7 +10,7 @@
 
 		override public string ToString()
 		{
-			return $"Count: {Count}, MenuItem: {MenuItem}";
+			return $"{MenuItem}, Count: {Count}";
 		}
 	}
 }

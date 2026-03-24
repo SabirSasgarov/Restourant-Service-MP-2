@@ -10,6 +10,8 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		public async Task<List<Order>> GetOrders()
 			=> await context.Orders
 				.AsNoTracking()
+				.Include(o => o.OrderItems)
+				.ThenInclude(oi => oi.MenuItem)
 				.ToListAsync();
 
 		public async Task AddOrder(List<(Guid MenuItemId, int Count)> orderItems)
@@ -57,8 +59,10 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		public async Task<List<Order>> GetOrdersByDatesInterval(DateTime firstDate, DateTime lastDate)
 		{
 			var orders = await context.Orders
-				.Where(o => o.Date >= firstDate && o.Date <= lastDate)
+				.Where(o => o.Date.Day >= firstDate.Day && o.Date.Day <= lastDate.Day)
 				.AsNoTracking()
+				.Include(o => o.OrderItems)
+				.ThenInclude(oi => oi.MenuItem)
 				.ToListAsync();
 
 			if (orders == null || orders.Count == 0)
@@ -72,6 +76,8 @@ namespace RestourantServiceApp.BLogicLayer.Services
 			var orders = await context.Orders
 				.Where(o => o.Date.Date == date.Date)
 				.AsNoTracking()
+				.Include(o => o.OrderItems)
+				.ThenInclude(oi => oi.MenuItem)
 				.ToListAsync();
 
 			if (orders == null || orders.Count == 0)
@@ -83,12 +89,22 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		public async Task<Order> GetOrderByNo(Guid id)
 		{
 			var order = await context.Orders
-				//.Include(o => o.OrderItems)
-				//.ThenInclude(oi => oi.MenuItem)
+				.Include(o => o.OrderItems)
+				.ThenInclude(oi => oi.MenuItem)
 				.FirstOrDefaultAsync(o => o.Id == id);
 
 			if (order == null)
 				throw new InvalidOperationException("Order not found.");
+
+			//order.OrderItems = order.OrderItems
+			//	.Select(oi =>
+			//	{
+			//		oi.MenuItem = context.MenuItems
+			//		
+			//		.FirstOrDefault(mi => mi.Id == oi.MenuItemId);
+			//		return oi;
+			//	})
+			//	.ToList();
 
 			return order;
 		}

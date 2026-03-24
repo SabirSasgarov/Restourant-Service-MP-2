@@ -10,7 +10,7 @@ namespace RestourantServiceApp.Core.Models
 
 		override public string ToString()
 		{
-			return $"TotalAmount: {TotalAmount}, Date: {Date}, OrderItems: {string.Join(", ", OrderItems)}";
+			return $"TotalAmount: {TotalAmount}, Date: {Date}";
 		}
 	}
 }
