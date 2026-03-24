@@ -182,6 +182,7 @@ namespace RestourantServiceApp.PL
 		{
 			RestourantDbContext context = new RestourantDbContext();
 			IOrderService os = new OrderService(context);
+			IMenuItemService mis = new MenuItemService(context);
 
 			Console.WriteLine("1 - Add new order, 2 - Cancel order, 3 - All orders, 4 - Orders in a time interval, " +
 				"\n5 - Search by price, 6 - Search by date, 7 - Search by id, 0 - Exit");
@@ -193,7 +194,36 @@ namespace RestourantServiceApp.PL
 				switch (opp)
 				{
 					case "1":
-						//Console.WriteLine("Enter items for new order in format: itemId1 count1, itemId2 count2, ...");
+						var allMenuItems = mis.GetMenuItems().Result;
+						int count = 1;
+						Console.WriteLine("All Menu Items: ");
+						foreach (var item in allMenuItems)
+							Console.WriteLine(count++ + " - " + item);
+						Console.WriteLine("\n0 - Finish Order!");
+						var orderItems = new List<(Guid MenuItemId, int Count)>();
+						while (true)
+						{
+							Console.WriteLine("Choose menuitem: ");
+							int index = int.Parse(Console.ReadLine());
+
+							if (index == 0)
+							{
+								os.AddOrder(orderItems);
+								break;
+							}
+							Console.WriteLine("Enter count: ");
+							int countItem = int.Parse(Console.ReadLine());
+							try
+							{
+								var itemId = allMenuItems[index - 1].Id;
+								orderItems.Add((itemId, countItem));
+							}
+							catch (Exception ex)
+							{
+								Console.WriteLine(ex.Message);
+								break;
+							}
+						}
 						break;
 					case "2":
 						int countToRemove = 1;

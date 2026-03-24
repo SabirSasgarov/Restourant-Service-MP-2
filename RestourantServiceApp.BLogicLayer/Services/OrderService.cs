@@ -18,8 +18,9 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		{
 			var newOrder = new Order
 			{
-				//Date = DateTime.Now,
-				OrderItems = new List<OrderItem>()
+				Date = DateTime.Now,
+				OrderItems = new List<OrderItem>(),
+				TotalAmount = 0
 			};
 
 			foreach (var (menuItemId, count) in orderItems)
@@ -40,6 +41,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 			newOrder.TotalAmount = newOrder.OrderItems
 				.Sum(oi => oi.MenuItem.Price * oi.Count);
 
+			//Console.WriteLine($"Total amount - {newOrder.TotalAmount}.");
 			context.Orders.Add(newOrder);
 			await context.SaveChangesAsync();
 		}
@@ -95,16 +97,6 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 			if (order == null)
 				throw new InvalidOperationException("Order not found.");
-
-			//order.OrderItems = order.OrderItems
-			//	.Select(oi =>
-			//	{
-			//		oi.MenuItem = context.MenuItems
-			//		
-			//		.FirstOrDefault(mi => mi.Id == oi.MenuItemId);
-			//		return oi;
-			//	})
-			//	.ToList();
 
 			return order;
 		}
