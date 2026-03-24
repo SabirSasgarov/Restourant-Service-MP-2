@@ -9,5 +9,10 @@ namespace RestourantServiceApp.Core.Models
 		public decimal Price { get; set; }
 		public Category Category { get; set; }
 		public OrderItem OrderItem { get; set; } = null!;
+
+		override public string ToString()
+		{
+			return $"Name: {Name}, Price: {Price}, Category: {Category}";
+		}
 	}
 }

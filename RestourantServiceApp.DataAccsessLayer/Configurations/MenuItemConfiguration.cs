@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using RestourantServiceApp.Core.Models;
+using RestourantServiceApp.DataAccsessLayer.Configurations.Seeds;
 
 namespace RestourantServiceApp.DataAccsessLayer.Configurations
 {
@@ -38,6 +39,7 @@ namespace RestourantServiceApp.DataAccsessLayer.Configurations
 				.WithOne(oi => oi.MenuItem)
 				.HasForeignKey<OrderItem>(oi => oi.MenuItemId);
 
+			MenuItemsSeed.MenuItemsSeeds(builder);
 		}
 	}
 }

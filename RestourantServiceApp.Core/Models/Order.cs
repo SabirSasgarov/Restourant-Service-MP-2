@@ -7,5 +7,10 @@ namespace RestourantServiceApp.Core.Models
 		public decimal TotalAmount {  get; set; }
 		public DateTime	Date {  get; set; }
 		public List<OrderItem> OrderItems {  get; set; } = null!;
+
+		override public string ToString()
+		{
+			return $"TotalAmount: {TotalAmount}, Date: {Date}, OrderItems: {string.Join(", ", OrderItems)}";
+		}
 	}
 }
