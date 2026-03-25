@@ -1,36 +1,49 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
 using RestourantServiceApp.Core.Models.Common;
+using RestourantServiceApp.DataAccsessLayer.Contexts;
 using RestourantServiceApp.DataAccsessLayer.Interfaces;
 
 namespace RestourantServiceApp.DataAccsessLayer.Concretes
 {
 	public class Repository<T> : IRepository<T> where T : BaseEntity
 	{
-		//private readonly AppDbContext _context;
-		//
-		public Task AddAsync(T entity)
+		private readonly RestourantDbContext _context;
+		private DbSet<T> Table { get; set; }
+		public Repository()
 		{
-			throw new NotImplementedException();
+			_context = new RestourantDbContext();
+			Table = _context.Set<T>();
 		}
 
-		public Task Delete(Guid id)
+		public async Task AddAsync(T entity)
 		{
-			throw new NotImplementedException();
+			await Table.AddAsync(entity);
 		}
 
-		public Task<IQueryable<T>> GetAllAsync()
+		public void Delete(T entity)
 		{
-			throw new NotImplementedException();
+			Table.Remove(entity);
 		}
 
-		public Task<T> GetByIdAsync(Guid id)
+		public IQueryable<T> GetAll()
 		{
-			throw new NotImplementedException();
+			return Table.AsQueryable();
 		}
 
-		public Task Update(T entity)
+		public async Task<T?> GetByIdAsync(Guid id)
 		{
-			throw new NotImplementedException();
+			return await Table.FindAsync(id);
+		}
+
+		public void Update(T entity)
+		{
+			Table.Update(entity);
+		}
+
+		public async Task SaveChangesAsync()
+		{
+			await _context.SaveChangesAsync();
 		}
 	}
 }

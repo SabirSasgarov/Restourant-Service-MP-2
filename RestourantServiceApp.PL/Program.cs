@@ -1,7 +1,10 @@
 ﻿using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.BLogicLayer.Services;
 using RestourantServiceApp.Core.Enums;
+using RestourantServiceApp.Core.Models;
+using RestourantServiceApp.DataAccsessLayer.Concretes;
 using RestourantServiceApp.DataAccsessLayer.Contexts;
+using RestourantServiceApp.DataAccsessLayer.Interfaces;
 
 namespace RestourantServiceApp.PL
 {
@@ -9,8 +12,6 @@ namespace RestourantServiceApp.PL
 	{
 		static void Main(string[] args)
 		{
-
-
 			while (true)
 			{
 				Console.Write("1 - Menu operations, 2 - Order operations, 3 - Quit\n->");
@@ -43,7 +44,8 @@ namespace RestourantServiceApp.PL
 		static void MenuOperations()
 		{
 			RestourantDbContext context = new RestourantDbContext();
-			IMenuItemService mis = new MenuItemService(context);
+			IRepository<MenuItem> menuItemRepository = new Repository<MenuItem>();
+			IMenuItemService mis = new MenuItemService(menuItemRepository);
 
 			while (true)
 			{
@@ -210,8 +212,10 @@ namespace RestourantServiceApp.PL
 		static void OrderOperations()
 		{
 			RestourantDbContext context = new RestourantDbContext();
-			IOrderService os = new OrderService(context);
-			IMenuItemService mis = new MenuItemService(context);
+			IRepository<Order> orderRepository = new Repository<Order>();
+			IRepository<MenuItem> menuItemRepository = new Repository<MenuItem>();
+			IOrderService os = new OrderService(orderRepository);
+			IMenuItemService mis = new MenuItemService(menuItemRepository);
 
 			while (true)
 			{

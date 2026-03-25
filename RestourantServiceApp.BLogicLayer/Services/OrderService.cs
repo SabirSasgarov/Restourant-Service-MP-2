@@ -2,14 +2,23 @@
 using RestourantServiceApp.BLogicLayer.Exceptions;
 using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.Core.Models;
-using RestourantServiceApp.DataAccsessLayer.Contexts;
+using RestourantServiceApp.DataAccsessLayer.Concretes;
+using RestourantServiceApp.DataAccsessLayer.Interfaces;
 
 namespace RestourantServiceApp.BLogicLayer.Services
 {
-	public class OrderService(RestourantDbContext context) : IOrderService
+	public class OrderService : IOrderService
 	{
+		private readonly IRepository<Order> _orderRepository;
+		private readonly IRepository<MenuItem> _menuItemRepository = new Repository<MenuItem>();
+
+		public OrderService(IRepository<Order> orderRepository)
+		{
+			_orderRepository = orderRepository;
+		}
+
 		public async Task<List<Order>> GetOrders()
-			=> await context.Orders
+			=> await _orderRepository.GetAll()
 				.AsNoTracking()
 				.Include(o => o.OrderItems)
 				.ThenInclude(oi => oi.MenuItem)
@@ -27,8 +36,9 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 			foreach (var (menuItemId, count) in orderItems)
 			{
-				var menuItem = await context.MenuItems
+				var menuItem = await _menuItemRepository.GetAll()
 					.FirstOrDefaultAsync(mi => mi.Id == menuItemId);
+
 				if (menuItem == null)
 					throw new MenuItemNotFound($"Menu item with ID {menuItemId} not found.");
 
@@ -43,25 +53,25 @@ namespace RestourantServiceApp.BLogicLayer.Services
 			}
 
 			//Console.WriteLine($"Total amount - {newOrder.TotalAmount}.");
-			context.Orders.Add(newOrder);
-			await context.SaveChangesAsync();
+			await _orderRepository.AddAsync(newOrder);
+			await _orderRepository.SaveChangesAsync();
 		}
 
 		public async Task RemoveOrder(Guid orderId)
 		{
-			var order = await context.Orders
+			var order = await _orderRepository.GetAll()
 				.FirstOrDefaultAsync(o => o.Id == orderId);
 
 			if (order == null)
 				throw new OrderNotFound("Order not found.");
 
-			context.Orders.Remove(order);
-			await context.SaveChangesAsync();
+			_orderRepository.Delete(order);
+			await _orderRepository.SaveChangesAsync();
 		}
 
 		public async Task<List<Order>> GetOrdersByDatesInterval(DateTime firstDate, DateTime lastDate)
 		{
-			var orders = await context.Orders
+			var orders = await _orderRepository.GetAll()
 				.Where(o => o.Date.Day >= firstDate.Day && o.Date.Day <= lastDate.Day)
 				.AsNoTracking()
 				.Include(o => o.OrderItems)
@@ -76,7 +86,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 		public async Task<List<Order>> GetOrdersByDate(DateTime date)
 		{
-			var orders = await context.Orders
+			var orders = await _orderRepository.GetAll()
 				.Where(o => o.Date.Date == date.Date)
 				.AsNoTracking()
 				.Include(o => o.OrderItems)
@@ -91,7 +101,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 		public async Task<Order> GetOrderByNo(Guid id)
 		{
-			var order = await context.Orders
+			var order = await _orderRepository.GetAll()
 				.Include(o => o.OrderItems)
 				.ThenInclude(oi => oi.MenuItem)
 				.FirstOrDefaultAsync(o => o.Id == id);
@@ -105,7 +115,9 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 		public async Task<List<Order>> GetOrdersByPriceInterval(decimal startPrice, decimal finalPrice)
 		{
-			var orders = await context.Orders
+			var orders = await _orderRepository.GetAll()
+				.Include(o => o.OrderItems)
+				.ThenInclude(oi => oi.MenuItem)
 				.Where(o => o.TotalAmount >= startPrice && o.TotalAmount <= finalPrice)
 				.AsNoTracking()
 				.ToListAsync();

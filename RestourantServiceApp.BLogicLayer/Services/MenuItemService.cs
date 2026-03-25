@@ -3,15 +3,21 @@ using RestourantServiceApp.BLogicLayer.Exceptions;
 using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.Core.Enums;
 using RestourantServiceApp.Core.Models;
-using RestourantServiceApp.DataAccsessLayer.Contexts;
+using RestourantServiceApp.DataAccsessLayer.Interfaces;
 
 namespace RestourantServiceApp.BLogicLayer.Services
 {
-	public class MenuItemService(RestourantDbContext context) : IMenuItemService
+	public class MenuItemService : IMenuItemService
 	{
+		private readonly IRepository<MenuItem> _menuItemRepository;
+		public MenuItemService(IRepository<MenuItem> menuItemRepository)
+		{
+			_menuItemRepository = menuItemRepository;
+		}
+
 		public async Task<List<MenuItem>> GetMenuItems()
-		=> await context.MenuItems
-				.AsNoTracking()
+		=> await _menuItemRepository
+				.GetAll()
 				.ToListAsync();
 
 		public async Task AddMenuItem(string name, decimal price, Category category)
@@ -22,26 +28,24 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				Price = price,
 				Category = category
 			};
-			context.MenuItems.Add(newMenuItem);
-			await context.SaveChangesAsync();
+			await _menuItemRepository.AddAsync(newMenuItem);
+			await _menuItemRepository.SaveChangesAsync();
 		}
 
 		public async Task RemoveMenuItem(Guid menuItemId)
 		{
-			var menuItem = await context.MenuItems
-				.FirstOrDefaultAsync(mi => mi.Id == menuItemId);
+			var menuItem = await _menuItemRepository.GetByIdAsync(menuItemId);
 
 			if (menuItem == null)
 				throw new MenuItemNotFound("Menu item not found.");
 
-			context.MenuItems.Remove(menuItem);
-			await context.SaveChangesAsync();
+			_menuItemRepository.Delete(menuItem);
+			await _menuItemRepository.SaveChangesAsync();
 		}
 
 		public async Task EditMenuItem(Guid menuItemId, string name, decimal price)
 		{
-			var menuItem = await context.MenuItems
-				.FirstOrDefaultAsync(mi => mi.Id == menuItemId);
+			var menuItem = await _menuItemRepository.GetByIdAsync(menuItemId);
 
 			if (menuItem == null)
 				throw new MenuItemNotFound("Menu item not found.");
@@ -49,30 +53,30 @@ namespace RestourantServiceApp.BLogicLayer.Services
 			menuItem.Name = name;
 			menuItem.Price = price;
 
-			context.MenuItems.Update(menuItem);
-			await context.SaveChangesAsync();
+			_menuItemRepository.Update(menuItem);
+			await _menuItemRepository.SaveChangesAsync();
 		}
 
 		public async Task<List<MenuItem>> GetMenuItemsByCategory(Category category)
 		{
-		    var items =	await context.MenuItems
+			var items = await _menuItemRepository.GetAll()
 			.Where(mi => mi.Category == category)
 			.AsNoTracking()
 			.ToListAsync();
-		
-			if(items.Count == 0)
+
+			if (items.Count == 0)
 				throw new MenuItemNotFound($"No menu items found in the category: {category}.");
 
 			return items;
 		}
 		public async Task<List<MenuItem>> GetMenuItemsInRange(decimal startPrice, decimal finalPrice)
 		{
-			var items = await context.MenuItems
+			var items = await _menuItemRepository.GetAll()
 			.Where(mi => mi.Price >= startPrice && mi.Price <= finalPrice)
 			.AsNoTracking()
 			.ToListAsync();
 
-			if(items.Count == 0)
+			if (items.Count == 0)
 				throw new MenuItemNotFound("No menu items found in the specified price range.");
 
 			return items;
@@ -80,17 +84,17 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		public async Task<List<MenuItem>> GetMenuItemsBySearch(string search)
 		{
 			if (string.IsNullOrWhiteSpace(search))
-				return await context.MenuItems
+				return await _menuItemRepository.GetAll()
 					.AsNoTracking()
 					.ToListAsync();
 
 			search = search.ToLower();
-			var menuItems = await context.MenuItems
+			var menuItems = await _menuItemRepository.GetAll()
 				.Where(mi => mi.Name.ToLower().Contains(search))
 				.AsNoTracking()
 				.ToListAsync();
 
-			if(menuItems.Count == 0)
+			if (menuItems.Count == 0)
 				throw new MenuItemNotFound("No menu items found matching the search criteria.");
 
 			return menuItems;
