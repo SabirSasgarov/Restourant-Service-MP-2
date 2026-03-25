@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RestourantServiceApp.BLogicLayer.Exceptions;
 using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.Core.Models;
 using RestourantServiceApp.DataAccsessLayer.Contexts;
@@ -18,6 +19,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		{
 			var newOrder = new Order
 			{
+				Id = Guid.NewGuid(),
 				Date = DateTime.Now,
 				OrderItems = new List<OrderItem>(),
 				TotalAmount = 0
@@ -28,18 +30,17 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				var menuItem = await context.MenuItems
 					.FirstOrDefaultAsync(mi => mi.Id == menuItemId);
 				if (menuItem == null)
-					throw new InvalidOperationException($"Menu item with ID {menuItemId} not found.");
+					throw new MenuItemNotFound($"Menu item with ID {menuItemId} not found.");
 
 				newOrder.OrderItems.Add(new OrderItem
 				{
+					Id = Guid.NewGuid(),
+					OrderId = newOrder.Id,
 					MenuItemId = menuItemId,
-					MenuItem = menuItem,
 					Count = count
 				});
+				newOrder.TotalAmount += count * menuItem.Price;
 			}
-
-			newOrder.TotalAmount = newOrder.OrderItems
-				.Sum(oi => oi.MenuItem.Price * oi.Count);
 
 			//Console.WriteLine($"Total amount - {newOrder.TotalAmount}.");
 			context.Orders.Add(newOrder);
@@ -52,7 +53,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				.FirstOrDefaultAsync(o => o.Id == orderId);
 
 			if (order == null)
-				throw new InvalidOperationException("Order not found.");
+				throw new OrderNotFound("Order not found.");
 
 			context.Orders.Remove(order);
 			await context.SaveChangesAsync();
@@ -68,7 +69,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				.ToListAsync();
 
 			if (orders == null || orders.Count == 0)
-				throw new InvalidOperationException("No orders found for the specified date interval.");
+				throw new OrderNotFound("No orders found for the specified date interval.");
 
 			return orders;
 		}
@@ -83,7 +84,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				.ToListAsync();
 
 			if (orders == null || orders.Count == 0)
-				throw new InvalidOperationException("No orders found for the specified date.");
+				throw new OrderNotFound("No orders found for the specified date.");
 
 			return orders;
 		}
@@ -96,7 +97,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				.FirstOrDefaultAsync(o => o.Id == id);
 
 			if (order == null)
-				throw new InvalidOperationException("Order not found.");
+				throw new OrderNotFound("Order not found.");
 
 			return order;
 		}
@@ -110,7 +111,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				.ToListAsync();
 
 			if (orders == null || orders.Count == 0)
-				throw new InvalidOperationException("No orders found for the specified price interval.");
+				throw new OrderNotFound("No orders found for the specified price interval.");
 
 			return orders;
 		}

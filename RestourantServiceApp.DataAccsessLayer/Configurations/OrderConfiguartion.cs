@@ -13,9 +13,6 @@ namespace RestourantServiceApp.DataAccsessLayer.Configurations
 
 			builder.HasKey(o => o.Id);
 
-			builder.Property(o => o.Id)
-				.HasDefaultValueSql("NEWSEQUENTIALID()");
-
 			builder
 				.Property(o => o.TotalAmount)
 				.HasPrecision(18, 2)

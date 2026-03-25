@@ -10,8 +10,4 @@
     <ProjectReference Include="..\RestourantServiceApp.DataAccsessLayer\RestourantServiceApp.DataAccsessLayer.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Exceptions\" />
-  </ItemGroup>
-
 </Project>

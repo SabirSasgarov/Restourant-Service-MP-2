@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RestourantServiceApp.DataAccsessLayer.Contexts;
 
@@ -11,9 +12,11 @@ using RestourantServiceApp.DataAccsessLayer.Contexts;
 namespace RestourantServiceApp.DataAccsessLayer.Migrations
 {
     [DbContext(typeof(RestourantDbContext))]
-    partial class RestourantDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325132922_mig_4")]
+    partial class mig_4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,19 +131,19 @@ namespace RestourantServiceApp.DataAccsessLayer.Migrations
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Date = new DateTime(2026, 3, 23, 19, 2, 55, 530, DateTimeKind.Local).AddTicks(7701),
+                            Date = new DateTime(2026, 3, 23, 17, 29, 21, 804, DateTimeKind.Local).AddTicks(9985),
                             TotalAmount = 35.00m
                         },
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            Date = new DateTime(2026, 3, 24, 19, 2, 55, 530, DateTimeKind.Local).AddTicks(7712),
+                            Date = new DateTime(2026, 3, 24, 17, 29, 21, 804, DateTimeKind.Local).AddTicks(9993),
                             TotalAmount = 27.65m
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Date = new DateTime(2026, 3, 25, 19, 2, 55, 530, DateTimeKind.Local).AddTicks(7716),
+                            Date = new DateTime(2026, 3, 25, 17, 29, 21, 804, DateTimeKind.Local).AddTicks(9995),
                             TotalAmount = 76.20m
                         });
                 });
@@ -149,7 +152,8 @@ namespace RestourantServiceApp.DataAccsessLayer.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<int>("Count")
                         .HasColumnType("int");
@@ -162,7 +166,8 @@ namespace RestourantServiceApp.DataAccsessLayer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MenuItemId");
+                    b.HasIndex("MenuItemId")
+                        .IsUnique();
 
                     b.HasIndex("OrderId");
 

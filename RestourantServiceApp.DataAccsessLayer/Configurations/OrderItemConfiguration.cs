@@ -11,8 +11,10 @@ namespace RestourantServiceApp.DataAccsessLayer.Configurations
 		{
 			builder.ToTable("OrderItems");
 
-			builder
-				.HasKey(oi => new { oi.OrderId, oi.MenuItemId });
+			builder.HasKey(oi => oi.Id);
+
+			//builder.Property(oi => oi.Id)
+			//	.HasDefaultValueSql("NEWSEQUENTIALID()");
 
 			builder
 				.Property(oi => oi.Count)
@@ -27,6 +29,10 @@ namespace RestourantServiceApp.DataAccsessLayer.Configurations
 				.HasOne(oi => oi.MenuItem)
 				.WithOne(mi => mi.OrderItem)
 				.HasForeignKey<OrderItem>(oi => oi.MenuItemId);
+
+			builder
+				.HasIndex(oi => oi.MenuItemId)
+				.IsUnique(false);
 
 			OrderItemSeed.OrderItemSeeds(builder);
 		}

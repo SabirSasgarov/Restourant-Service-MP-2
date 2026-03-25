@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RestourantServiceApp.BLogicLayer.Exceptions;
 using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.Core.Enums;
 using RestourantServiceApp.Core.Models;
 using RestourantServiceApp.DataAccsessLayer.Contexts;
-using System.ComponentModel;
 
 namespace RestourantServiceApp.BLogicLayer.Services
 {
@@ -32,7 +32,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				.FirstOrDefaultAsync(mi => mi.Id == menuItemId);
 
 			if (menuItem == null)
-				throw new InvalidOperationException("Menu item not found.");
+				throw new MenuItemNotFound("Menu item not found.");
 
 			context.MenuItems.Remove(menuItem);
 			await context.SaveChangesAsync();
@@ -44,7 +44,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				.FirstOrDefaultAsync(mi => mi.Id == menuItemId);
 
 			if (menuItem == null)
-				throw new InvalidOperationException("Menu item not found.");
+				throw new MenuItemNotFound("Menu item not found.");
 
 			menuItem.Name = name;
 			menuItem.Price = price;
@@ -54,17 +54,29 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		}
 
 		public async Task<List<MenuItem>> GetMenuItemsByCategory(Category category)
-		=> await context.MenuItems
+		{
+		    var items =	await context.MenuItems
 			.Where(mi => mi.Category == category)
 			.AsNoTracking()
 			.ToListAsync();
+		
+			if(items.Count == 0)
+				throw new MenuItemNotFound($"No menu items found in the category: {category}.");
 
+			return items;
+		}
 		public async Task<List<MenuItem>> GetMenuItemsInRange(decimal startPrice, decimal finalPrice)
-		=> await context.MenuItems
+		{
+			var items = await context.MenuItems
 			.Where(mi => mi.Price >= startPrice && mi.Price <= finalPrice)
 			.AsNoTracking()
 			.ToListAsync();
 
+			if(items.Count == 0)
+				throw new MenuItemNotFound("No menu items found in the specified price range.");
+
+			return items;
+		}
 		public async Task<List<MenuItem>> GetMenuItemsBySearch(string search)
 		{
 			if (string.IsNullOrWhiteSpace(search))
@@ -77,6 +89,9 @@ namespace RestourantServiceApp.BLogicLayer.Services
 				.Where(mi => mi.Name.ToLower().Contains(search))
 				.AsNoTracking()
 				.ToListAsync();
+
+			if(menuItems.Count == 0)
+				throw new MenuItemNotFound("No menu items found matching the search criteria.");
 
 			return menuItems;
 		}

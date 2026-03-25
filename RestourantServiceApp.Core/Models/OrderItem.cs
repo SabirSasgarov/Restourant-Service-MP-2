@@ -1,7 +1,9 @@
-﻿namespace RestourantServiceApp.Core.Models
+﻿using RestourantServiceApp.Core.Models.Common;
+
+namespace RestourantServiceApp.Core.Models
 {
-	public class OrderItem
-	{
+	public class OrderItem : BaseEntity
+	{ 
 		public int Count { get; set; }
 		public Guid MenuItemId { get; set; }
 		public MenuItem MenuItem { get; set; } = null!;
