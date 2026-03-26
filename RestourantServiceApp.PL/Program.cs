@@ -1,7 +1,11 @@
-﻿using RestourantServiceApp.BLogicLayer.Interfaces;
+﻿using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
+using RestourantServiceApp.BLogicLayer.Dtos.MenuItemDtos;
+using RestourantServiceApp.BLogicLayer.Exceptions;
+using RestourantServiceApp.BLogicLayer.Interfaces;
+using RestourantServiceApp.BLogicLayer.Mappers;
 using RestourantServiceApp.BLogicLayer.Services;
 using RestourantServiceApp.Core.Enums;
-using RestourantServiceApp.Core.Models;
 using RestourantServiceApp.DataAccsessLayer.Concretes;
 using RestourantServiceApp.DataAccsessLayer.Contexts;
 using RestourantServiceApp.DataAccsessLayer.Interfaces;
@@ -14,7 +18,7 @@ namespace RestourantServiceApp.PL
 		{
 			while (true)
 			{
-				Console.Write("1 - Menu operations, 2 - Order operations, 3 - Quit\n->");
+				Console.Write("1 - Menu operations, 2 - Order operations, 0 - Quit\n->");
 				string? opp = Console.ReadLine();
 				switch (opp)
 				{
@@ -30,7 +34,7 @@ namespace RestourantServiceApp.PL
 						Console.Clear();
 						break;
 
-					case "3":
+					case "0":
 						Console.WriteLine("---Exit---");
 						return;
 
@@ -43,9 +47,15 @@ namespace RestourantServiceApp.PL
 
 		static void MenuOperations()
 		{
-			RestourantDbContext context = new RestourantDbContext();
-			IRepository<MenuItem> menuItemRepository = new Repository<MenuItem>();
-			IMenuItemService mis = new MenuItemService(menuItemRepository);
+			var serviceCollection = new ServiceCollection();
+			serviceCollection.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+			serviceCollection.AddScoped<IMenuItemService, MenuItemService>();
+			serviceCollection.AddDbContext<RestourantDbContext>();
+			serviceCollection.AddAutoMapper(opt => { opt.AddProfile(new MapProfile()); });
+			serviceCollection.AddLogging();
+
+			var serviceProvider = serviceCollection.BuildServiceProvider();
+			var mis = serviceProvider.GetRequiredService<IMenuItemService>();
 
 			while (true)
 			{
@@ -61,9 +71,11 @@ namespace RestourantServiceApp.PL
 						{
 							Console.WriteLine("Enter name for new item: ");
 							string? newItemName = Console.ReadLine();
+							ValidateItemName(newItemName);
 
 							Console.WriteLine("Enter price for new item: ");
 							decimal newItemPrice = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							ValidatePrice(newItemPrice);
 
 							Console.WriteLine("Choose category for new item: ");
 							int counter = 1;
@@ -72,7 +84,17 @@ namespace RestourantServiceApp.PL
 
 							int newItemCat = int.Parse(Console.ReadLine()) - 1;
 
-							mis.AddMenuItem(newItemName, newItemPrice, (Category)newItemCat);
+							if (newItemCat < 0 || newItemCat >= Enum.GetNames(typeof(Category)).Length)
+								throw new MenuItemWrongValue("Invalid category selection!");
+
+							MenuItemCreateDto menuItemCreateDto = new MenuItemCreateDto
+							{
+								Name = newItemName,
+								Price = newItemPrice,
+								Category = (Category)newItemCat
+							};
+
+							mis.AddMenuItem(menuItemCreateDto).Wait();
 						}
 						catch (Exception ex)
 						{
@@ -83,7 +105,8 @@ namespace RestourantServiceApp.PL
 						break;
 					case "2":
 						int count = 1;
-						foreach (var item in mis.GetMenuItems().Result)
+						List<MenuItemReturnDto> itemsToEdit = mis.GetMenuItems().Result;
+						foreach (var item in itemsToEdit)
 						{
 							Console.WriteLine(count++ + " - " + item);
 						}
@@ -91,15 +114,25 @@ namespace RestourantServiceApp.PL
 						{
 							Console.WriteLine("Choose to proceed: ");
 							int index = int.Parse(Console.ReadLine());
-							var itemIdToEdit = mis.GetMenuItems().Result[index - 1].Id;
+							
+							if (index < 1 || index > itemsToEdit.Count)
+								throw new MenuItemWrongValue("Invalid selection!");
+
+							var itemToEdit = itemsToEdit[index - 1];
 
 							Console.WriteLine("Enter new name for it: ");
 							string editedItemName = Console.ReadLine();
+							for (int i = 0; i < editedItemName.Length; i++)
+							{
+								if (char.IsDigit(editedItemName[i]))
+									throw new MenuItemWrongValue("Name cannot contain digits!");
+							}
 
 							Console.WriteLine("Enter new price for it: ");
 							decimal editedItemPrice = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							ValidatePrice(editedItemPrice);
 
-							mis.EditMenuItem(itemIdToEdit, editedItemName, editedItemPrice);
+							mis.EditMenuItem(itemToEdit, editedItemName, editedItemPrice).Wait();
 						}
 						catch (Exception ex)
 						{
@@ -110,15 +143,18 @@ namespace RestourantServiceApp.PL
 						break;
 					case "3":
 						int countToRemove = 1;
-						foreach (var item in mis.GetMenuItems().Result)
+						var itemsToRemove = mis.GetMenuItems().Result;
+						foreach (var item in itemsToRemove)
 							Console.WriteLine(countToRemove++ + " - " + item);
 						try
 						{
 							Console.WriteLine("Choose to proceed: ");
 							int indexToRemove = int.Parse(Console.ReadLine());
+							if (indexToRemove < 1 || indexToRemove > itemsToRemove.Count)
+								throw new MenuItemWrongValue("Invalid selection!");
 
-							var itemIdToRemove = mis.GetMenuItems().Result[indexToRemove - 1].Id;
-							mis.RemoveMenuItem(itemIdToRemove);
+							var itemIdToRemove = itemsToRemove[indexToRemove - 1];
+							mis.RemoveMenuItem(itemIdToRemove).Wait();
 						}
 						catch (Exception ex)
 						{
@@ -211,11 +247,17 @@ namespace RestourantServiceApp.PL
 
 		static void OrderOperations()
 		{
-			RestourantDbContext context = new RestourantDbContext();
-			IRepository<Order> orderRepository = new Repository<Order>();
-			IRepository<MenuItem> menuItemRepository = new Repository<MenuItem>();
-			IOrderService os = new OrderService(orderRepository);
-			IMenuItemService mis = new MenuItemService(menuItemRepository);
+			var serviceCollection = new ServiceCollection();
+			serviceCollection.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+			serviceCollection.AddScoped<IOrderService, OrderService>();
+			serviceCollection.AddScoped<IMenuItemService, MenuItemService>();
+			serviceCollection.AddDbContext<RestourantDbContext>();
+			serviceCollection.AddAutoMapper(opt => { opt.AddProfile(new MapProfile()); });
+			serviceCollection.AddLogging();
+
+			var serviceProvider = serviceCollection.BuildServiceProvider();
+			var mis = serviceProvider.GetRequiredService<IMenuItemService>();
+			var os = serviceProvider.GetRequiredService<IOrderService>();
 
 			while (true)
 			{
@@ -233,7 +275,7 @@ namespace RestourantServiceApp.PL
 						foreach (var item in allMenuItems)
 							Console.WriteLine(count++ + " - " + item);
 						Console.WriteLine("\n0 - Finish Order!");
-						var orderItems = new List<(Guid MenuItemId, int Count)>();
+						var orderItems = new List<(MenuItemReturnDto menuItemReturnDto, int Count)>();
 						while (true)
 						{
 							try
@@ -249,8 +291,8 @@ namespace RestourantServiceApp.PL
 								Console.WriteLine("Enter count: ");
 								int countItem = int.Parse(Console.ReadLine());
 
-								var itemId = allMenuItems[index - 1].Id;
-								orderItems.Add((itemId, countItem));
+								var menuItemDto = allMenuItems[index - 1];
+								orderItems.Add((menuItemDto, countItem));
 							}
 							catch (Exception ex)
 							{
@@ -269,9 +311,11 @@ namespace RestourantServiceApp.PL
 						{
 							Console.WriteLine("Choose to proceed: ");
 							int indexToRemove = int.Parse(Console.ReadLine());
+							if (indexToRemove < 1 || indexToRemove > allOrders.Count)
+								throw new MenuItemWrongValue("Invalid selection!");
 
-							var itemIdToRemove = allOrders[indexToRemove - 1].Id;
-							os.RemoveOrder(itemIdToRemove).Wait();
+							var orderToRemove = allOrders[indexToRemove - 1];
+							os.RemoveOrder(orderToRemove).Wait();
 						}
 						catch (Exception ex)
 						{
@@ -381,9 +425,11 @@ namespace RestourantServiceApp.PL
 						{
 							Console.WriteLine("Choose to proceed: ");
 							int indexToSearch = int.Parse(Console.ReadLine());
+							if (indexToSearch < 1 || indexToSearch > allOrdersToSearch.Count)
+								throw new MenuItemWrongValue("Invalid selection!");
 
-							var itemIdToSearch = allOrdersToSearch[indexToSearch - 1].Id;
-							var order = os.GetOrderByNo(itemIdToSearch).Result;
+							var orderToSearch = allOrdersToSearch[indexToSearch - 1];
+							var order = os.GetOrderByNo(orderToSearch).Result;
 							Console.WriteLine(order);
 							order.OrderItems.ForEach(oi => Console.WriteLine("\t" + oi));
 						}
@@ -402,5 +448,24 @@ namespace RestourantServiceApp.PL
 			}
 		}
 
+
+
+		private static void ValidatePrice(decimal newItemPrice)
+		{
+			if (newItemPrice <= 0)
+				throw new MenuItemWrongValue("Price must be more than 0!");
+		}
+
+		private static void ValidateItemName(string? newItemName)
+		{
+			if (string.IsNullOrEmpty(newItemName))
+				throw new MenuItemWrongValue("Name cannot be empty!");
+
+			for (int i = 0; i < newItemName.Length; i++)
+			{
+				if (char.IsDigit(newItemName[i]))
+					throw new MenuItemWrongValue("Name cannot contain digits!");
+			}
+		}
 	}
 }

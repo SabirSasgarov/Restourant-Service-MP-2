@@ -1,8 +1,9 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using RestourantServiceApp.Core.Models.Common;
 using RestourantServiceApp.DataAccsessLayer.Contexts;
 using RestourantServiceApp.DataAccsessLayer.Interfaces;
+using System.Linq.Expressions;
 
 namespace RestourantServiceApp.DataAccsessLayer.Concretes
 {
@@ -44,6 +45,21 @@ namespace RestourantServiceApp.DataAccsessLayer.Concretes
 		public async Task SaveChangesAsync()
 		{
 			await _context.SaveChangesAsync();
+		}
+
+		public IQueryable<T> GetAll(bool isTracking = false, Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IIncludableQueryable<T,object>>? includes = null)
+		{
+			var query = isTracking ? Table.AsTracking() : Table.AsNoTracking();
+
+			if(filter != null)
+				query = query.Where(filter);
+
+			if (includes != null)
+				query = includes(query);
+			
+
+			return query;
+
 		}
 	}
 }

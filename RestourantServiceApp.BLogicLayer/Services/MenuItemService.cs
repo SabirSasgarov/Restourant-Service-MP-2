@@ -1,8 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using RestourantServiceApp.BLogicLayer.Dtos.MenuItemDtos;
 using RestourantServiceApp.BLogicLayer.Exceptions;
 using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.Core.Enums;
 using RestourantServiceApp.Core.Models;
+using RestourantServiceApp.DataAccsessLayer.Concretes;
 using RestourantServiceApp.DataAccsessLayer.Interfaces;
 
 namespace RestourantServiceApp.BLogicLayer.Services
@@ -10,31 +13,35 @@ namespace RestourantServiceApp.BLogicLayer.Services
 	public class MenuItemService : IMenuItemService
 	{
 		private readonly IRepository<MenuItem> _menuItemRepository;
-		public MenuItemService(IRepository<MenuItem> menuItemRepository)
+		private readonly IMapper _mapper;
+		private Repository<MenuItem> repository;
+
+		public MenuItemService(IRepository<MenuItem> menuItemRepository, IMapper mapper)
 		{
 			_menuItemRepository = menuItemRepository;
+			_mapper = mapper;
 		}
 
-		public async Task<List<MenuItem>> GetMenuItems()
-		=> await _menuItemRepository
+		public async Task<List<MenuItemReturnDto>> GetMenuItems()
+		{
+			var menuItems = await _menuItemRepository
 				.GetAll()
 				.ToListAsync();
 
-		public async Task AddMenuItem(string name, decimal price, Category category)
+			return _mapper.Map<List<MenuItemReturnDto>>(menuItems);
+		}
+
+		public async Task AddMenuItem(MenuItemCreateDto menuItemCreateDto)
 		{
-			var newMenuItem = new MenuItem
-			{
-				Name = name,
-				Price = price,
-				Category = category
-			};
+			var newMenuItem = _mapper.Map<MenuItem>(menuItemCreateDto);
+
 			await _menuItemRepository.AddAsync(newMenuItem);
 			await _menuItemRepository.SaveChangesAsync();
 		}
 
-		public async Task RemoveMenuItem(Guid menuItemId)
+		public async Task RemoveMenuItem(MenuItemReturnDto menuItemReturnDto)
 		{
-			var menuItem = await _menuItemRepository.GetByIdAsync(menuItemId);
+			var menuItem = await GetMenuItemByName(menuItemReturnDto);
 
 			if (menuItem == null)
 				throw new MenuItemNotFound("Menu item not found.");
@@ -43,62 +50,67 @@ namespace RestourantServiceApp.BLogicLayer.Services
 			await _menuItemRepository.SaveChangesAsync();
 		}
 
-		public async Task EditMenuItem(Guid menuItemId, string name, decimal price)
+		public async Task EditMenuItem(MenuItemReturnDto menuItemDto, string name, decimal price)
 		{
-			var menuItem = await _menuItemRepository.GetByIdAsync(menuItemId);
+			var menuItem = await GetMenuItemByName(menuItemDto);
 
 			if (menuItem == null)
 				throw new MenuItemNotFound("Menu item not found.");
-
-			menuItem.Name = name;
-			menuItem.Price = price;
+			if (!string.IsNullOrWhiteSpace(name))
+				menuItem.Name = name;
+			if (price > 0)
+				menuItem.Price = price;
 
 			_menuItemRepository.Update(menuItem);
 			await _menuItemRepository.SaveChangesAsync();
 		}
 
-		public async Task<List<MenuItem>> GetMenuItemsByCategory(Category category)
+		public async Task<List<MenuItemReturnDto>> GetMenuItemsByCategory(Category category)
 		{
-			var items = await _menuItemRepository.GetAll()
-			.Where(mi => mi.Category == category)
-			.AsNoTracking()
-			.ToListAsync();
+			var items = await _menuItemRepository.GetAll(false, mi => mi.Category == category)
+				.ToListAsync();
 
 			if (items.Count == 0)
 				throw new MenuItemNotFound($"No menu items found in the category: {category}.");
 
-			return items;
+			return _mapper.Map<List<MenuItemReturnDto>>(items);
 		}
-		public async Task<List<MenuItem>> GetMenuItemsInRange(decimal startPrice, decimal finalPrice)
+
+		public async Task<List<MenuItemReturnDto>> GetMenuItemsInRange(decimal startPrice, decimal finalPrice)
 		{
-			var items = await _menuItemRepository.GetAll()
-			.Where(mi => mi.Price >= startPrice && mi.Price <= finalPrice)
-			.AsNoTracking()
-			.ToListAsync();
+			var items = await _menuItemRepository.GetAll(false, mi => mi.Price >= startPrice && mi.Price <= finalPrice)
+				.ToListAsync();
 
 			if (items.Count == 0)
 				throw new MenuItemNotFound("No menu items found in the specified price range.");
 
-			return items;
+			return _mapper.Map<List<MenuItemReturnDto>>(items);
 		}
-		public async Task<List<MenuItem>> GetMenuItemsBySearch(string search)
+
+		public async Task<List<MenuItemReturnDto>> GetMenuItemsBySearch(string search)
 		{
 			if (string.IsNullOrWhiteSpace(search))
-				return await _menuItemRepository.GetAll()
-					.AsNoTracking()
-					.ToListAsync();
+			{
+				var allItems = await _menuItemRepository.GetAll(false).ToListAsync();
+				return _mapper.Map<List<MenuItemReturnDto>>(allItems);
+			}
 
 			search = search.ToLower();
-			var menuItems = await _menuItemRepository.GetAll()
-				.Where(mi => mi.Name.ToLower().Contains(search))
-				.AsNoTracking()
+			var menuItems = await _menuItemRepository.GetAll(false, mi => mi.Name.ToLower().Contains(search))
 				.ToListAsync();
 
-			if (menuItems.Count == 0)
-				throw new MenuItemNotFound("No menu items found matching the search criteria.");
-
-			return menuItems;
+			return _mapper.Map<List<MenuItemReturnDto>>(menuItems);
 		}
 
+		public async Task<MenuItem> GetMenuItemByName(MenuItemReturnDto menuItemReturnDto)
+		{
+			var menuItem = await _menuItemRepository.GetAll(false, mi => mi.Name.ToLower() == menuItemReturnDto.Name.ToLower())
+				.FirstOrDefaultAsync();
+
+			if (menuItem == null)
+				throw new MenuItemNotFound($"Menu item with name '{menuItemReturnDto.Name}' not found.");
+
+			return menuItem;
+		}
 	}
 }

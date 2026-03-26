@@ -1,14 +1,12 @@
 ﻿using RestourantServiceApp.Core.Enums;
-using RestourantServiceApp.Core.Models.Common;
 
-namespace RestourantServiceApp.Core.Models
+namespace RestourantServiceApp.BLogicLayer.Dtos.MenuItemDtos
 {
-	public class MenuItem : BaseEntity
+	public class MenuItemReturnDto
 	{
 		public string Name { get; set; } = null!;
 		public decimal Price { get; set; }
 		public Category Category { get; set; }
-		public OrderItem OrderItem { get; set; } = null!;
 
 		public override string ToString()
 		{

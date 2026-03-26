@@ -8,9 +8,5 @@ namespace RestourantServiceApp.Core.Models
 		public DateTime	Date {  get; set; } = DateTime.Now;
 		public List<OrderItem> OrderItems {  get; set; } = null!;
 
-		override public string ToString()
-		{
-			return $"TotalAmount: {TotalAmount}, Date: {Date}";
-		}
 	}
 }

@@ -1,16 +1,16 @@
-﻿using RestourantServiceApp.Core.Enums;
-using RestourantServiceApp.Core.Models;
+﻿using RestourantServiceApp.BLogicLayer.Dtos.MenuItemDtos;
+using RestourantServiceApp.Core.Enums;
 
 namespace RestourantServiceApp.BLogicLayer.Interfaces
 {
 	public interface IMenuItemService
 	{
-		Task AddMenuItem(string name, decimal price, Category category);
-		Task EditMenuItem(Guid menuItemId, string name, decimal price);
-		Task<List<MenuItem>> GetMenuItems();
-		Task<List<MenuItem>> GetMenuItemsByCategory(Category category);
-		Task<List<MenuItem>> GetMenuItemsBySearch(string search);
-		Task<List<MenuItem>> GetMenuItemsInRange(decimal startPrice, decimal finalPrice);
-		Task RemoveMenuItem(Guid menuItemId);
+		Task AddMenuItem(MenuItemCreateDto menuItemCreateDto);
+		Task EditMenuItem(MenuItemReturnDto menuItem, string name, decimal price);
+		Task<List<MenuItemReturnDto>> GetMenuItems();
+		Task<List<MenuItemReturnDto>> GetMenuItemsByCategory(Category category);
+		Task<List<MenuItemReturnDto>> GetMenuItemsBySearch(string search);
+		Task<List<MenuItemReturnDto>> GetMenuItemsInRange(decimal startPrice, decimal finalPrice);
+		Task RemoveMenuItem(MenuItemReturnDto menuItemReturnDto);
 	}
 }
