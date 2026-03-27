@@ -1,42 +1,67 @@
 # Restaurant Service App
 
-A monolithic C# .NET 8 console application for managing restaurant menu items, customer orders, and tracking order history.
+A monolithic C# `.NET 8` console application for managing restaurant menu items and customer orders.
 
 ## Architecture
 
-This project strictly follows an N-Tier architecture to separate concerns and improve maintainability:
+This solution follows an N-Tier structure:
 
-1. **RestourantServiceApp.Core**: Contains the core domain models (`MenuItem`, `Order`, `OrderItem`), base entities, and Enumerations (`Category`). No outer dependencies.
-2. **RestourantServiceApp.DataAccsessLayer**: Integrates Entity Framework Core 8 (`EF Core`), acts as the repository layer containing `RestourantDbContext`, complex `IEntityTypeConfiguration` definitions, model seeding, and Code-First Migrations.
-3. **RestourantServiceApp.BLogicLayer**: Houses the core business logic through Service classes (`MenuItemService`, `OrderService`). Provides APIs for querying and mutating application state.
-4. **RestourantServiceApp.PL**: The Presentation Layer (Console entry point, `Program.cs`) providing an interactive terminal UI for the restaurant staff to manage operations.
+1. **`RestourantServiceApp.Core`**
+   - Domain models: `MenuItem`, `Order`, `OrderItem`
+   - Base entities and enums (for example `Category`)
 
-## Domain Models
+2. **`RestourantServiceApp.DataAccsessLayer`**
+   - `Entity Framework Core` context (`RestourantDbContext`)
+   - Repository implementation (`IRepository<T>`, `Repository<T>`)
+   - Entity configurations, seeds, and migrations
 
-- **MenuItem**: Items available on the menu, featuring unique names, decimal pricing (`Decimal(18,2)`), and categorized by an enum (e.g., Pizza, Burger, Option, Salad).
-- **Order**: Represents a customer's order. Tracks an auto-generated Date and the Total Amount for the entire check.
-- **OrderItem**: The mapping/join table for the Many-to-Many relationship between `Order` and `MenuItem`. Uses a Composite Primary Key (`OrderId`, `MenuItemId`) and tracks item quantity (`Count`).
+3. **`RestourantServiceApp.BLogicLayer`**
+   - Business services: `MenuItemService`, `OrderService`
+   - DTOs and AutoMapper profiles
+   - Custom exceptions
 
-## Core Services
+4. **`RestourantServiceApp.PL`**
+   - Console presentation (`Program.cs`)
+   - Interactive menu/order management flow
 
-The business logic relies on robust services inside `BLogicLayer/Services` handling Entity Framework operations:
+## Domain Model Summary
 
-### `MenuItemService`
-Manages the restaurant's menu catalog. Key capabilities include:
-- Adding, editing, and removing menu items.
-- Retrieving menu items with various robust filters:
-  - By category.
-  - By specific price ranges.
-  - Using string search by item name.
+- **`MenuItem`**: menu name, price, category
+- **`Order`**: order date, total amount, collection of order items
+- **`OrderItem`**: quantity (`Count`) and foreign keys to an order and menu item
 
-### `OrderService`
-Manages customer receipts and total calculations. Key operations include:
-- Generating new orders by combining multiple items, mapping the `OrderItem` relationships, and automatically calculating the `TotalAmount` dynamically based on prices.
-- Removing entire orders.
-- Generating query reports and historic records:
-  - Lookup by exact order ID.
-  - Filter orders by specific Date or a Date Interval.
-  - Filter orders within a given price constraint interval.
+## Core Features
+
+### Menu Operations
+- Add menu item
+- Update menu item
+- Remove menu item
+- List all menu items
+- Filter by category
+- Filter by price range
+- Search by name
+
+### Order Operations
+- Create order from selected menu items
+- Cancel order
+- List all orders
+- Filter by date interval
+- Filter by total price interval
+- Filter by date
+- Show selected order details
+
+## Recent Updates
+
+- Improved console UI readability:
+  - section headers
+  - cleaner prompts
+  - colored success/warning messages
+- Improved exception visibility in console:
+  - unwraps `AggregateException` and prints root cause messages
+- Added DTO separation for order details:
+  - `OrderReturnDto` now uses `List<OrderItemReturnDto>`
+  - order item DTO intentionally does **not** expose `MenuItemId`
+- Fixed EF Core tracking conflict when editing/removing menu items repeatedly by fetching tracked entity instances where needed.
 
 ## Prerequisites
 
@@ -45,27 +70,28 @@ Manages customer receipts and total calculations. Key operations include:
 
 ## Getting Started
 
-### 1. Database Configuration
+### 1) Configure database connection
 
-The standard connection string is located in your DB Context: `RestourantServiceApp.DataAccsessLayer/Contexts/RestourantDbContext.cs`
+Connection string is currently configured in:
 
-Double-check it matches your SQL Server instance constraint. Example:
+- `RestourantServiceApp.DataAccsessLayer/Contexts/RestourantDbContext.cs`
+
+Example:
+
 ```csharp
-"Server=.;Database=RestourantServiceDb;Trusted_Connection=True;TrustServerCertificate=True;"
+"Data Source=.\\MSSQLSERVER01;Initial Catalog=RestourantServiceDb;Integrated Security=True;Trust Server Certificate=True;"
 ```
 
-### 2. Migrations and Database Seeding
+### 2) Apply migrations
 
-To create your database schema and apply the seed data (which includes some pre-populated Menu Items and Orders for testing), run the EF Core CLI tools command from the solution root:
+From solution root:
 
 ```bash
 dotnet tool install --global dotnet-ef
 dotnet ef database update --project RestourantServiceApp.DataAccsessLayer --startup-project RestourantServiceApp.PL
 ```
 
-### 3. Build & Run
-
-To build everything and launch the interactive Presentation Layer:
+### 3) Build and run
 
 ```bash
 dotnet build
