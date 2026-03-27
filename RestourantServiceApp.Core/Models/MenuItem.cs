@@ -10,9 +10,5 @@ namespace RestourantServiceApp.Core.Models
 		public Category Category { get; set; }
 		public OrderItem OrderItem { get; set; } = null!;
 
-		public override string ToString()
-		{
-			return $"Name: {Name}, Price: {Price}, Category: {Category}";
-		}
 	}
 }

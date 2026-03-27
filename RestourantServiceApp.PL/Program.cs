@@ -67,7 +67,9 @@ namespace RestourantServiceApp.PL
 				Console.WriteLine("5 - Search by categories");
 				Console.WriteLine("6 - Search by price");
 				Console.WriteLine("7 - Search by name");
+				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine("0 - Exit");
+				Console.ResetColor();
 
 				Console.Write("\nChoose operation\n-> ");
 				string? opp = Console.ReadLine();
@@ -79,11 +81,38 @@ namespace RestourantServiceApp.PL
 						{
 							Console.Write("Enter name for new item -> ");
 							string? newItemName = Console.ReadLine();
-							ValidateItemName(newItemName);
+							while (true)
+							{
+								bool isCorrect = true;
+								if (string.IsNullOrEmpty(newItemName))
+								{
+									PrintWarning("Name cannot be empty!");
+									Console.Write("Enter name for new item -> ");
+									newItemName = Console.ReadLine();
+									isCorrect = false;
+								}
+								for (int i = 0; i < newItemName.Length; i++)
+								{
+									if (char.IsDigit(newItemName[i]))
+									{
+										PrintWarning("Name cannot contain digits!");
+										Console.Write("Enter name for new item -> ");
+										newItemName = Console.ReadLine();
+										isCorrect = false;
+									}
+								}
+								if(isCorrect)
+									break;
+							}
 
 							Console.Write("Enter price for new item -> ");
 							decimal newItemPrice = decimal.Parse(Console.ReadLine().Replace('.', ','));
-							ValidatePrice(newItemPrice);
+							while(newItemPrice <= 0)
+							{
+								PrintWarning("Price must be more than 0!");
+								Console.Write("Enter price for new item -> ");
+								newItemPrice = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							}
 
 							PrintHeader("CATEGORIES");
 							int counter = 1;
@@ -108,7 +137,7 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -137,12 +166,25 @@ namespace RestourantServiceApp.PL
 							var itemToEdit = itemsToEdit[index - 1];
 
 							Console.Write("Enter new name -> ");
-							string editedItemName = Console.ReadLine();
-							for (int i = 0; i < editedItemName.Length; i++)
+							string? editedItemName = Console.ReadLine();
+							while (true)
 							{
-								if (char.IsDigit(editedItemName[i]))
-									throw new MenuItemWrongValue("Name cannot contain digits!");
+								int counter = 0;
+								for (int i = 0; i < editedItemName.Length; i++)
+								{
+									if (char.IsDigit(editedItemName[i]))
+									{
+										counter++;
+										PrintWarning("Name cannot contain digits!");
+										break;
+									}
+								}
+								if (counter == 0)
+									break;
+								Console.Write("Enter new name -> ");
+								editedItemName = Console.ReadLine();
 							}
+
 							if (string.IsNullOrWhiteSpace(editedItemName))
 								editedItemName = itemToEdit.Name;
 
@@ -154,12 +196,23 @@ namespace RestourantServiceApp.PL
 							else
 								editedItemPriceDecimal = itemToEdit.Price;
 
+							while (editedItemPriceDecimal <= 0)
+							{
+								PrintWarning("Price must be more than 0!");
+								Console.Write("Enter new price -> ");
+								editedItemPrice = Console.ReadLine().Replace('.', ',');
+								if (!string.IsNullOrWhiteSpace(editedItemPrice))
+									editedItemPriceDecimal = decimal.Parse(editedItemPrice);
+								else
+									editedItemPriceDecimal = itemToEdit.Price;
+							}
+
 							mis.EditMenuItem(itemToEdit, editedItemName, editedItemPriceDecimal).Wait();
 							PrintSuccess("Menu item updated successfully.");
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -189,7 +242,7 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -232,7 +285,7 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -241,14 +294,30 @@ namespace RestourantServiceApp.PL
 						try
 						{
 							Console.Write("Enter first price to search -> ");
-							decimal startPriceToSearch = decimal.Parse(Console.ReadLine().Replace('.', ','));
-							ValidatePrice(startPriceToSearch);
+							string? startPriceInput = Console.ReadLine();
+							if (string.IsNullOrWhiteSpace(startPriceInput))
+								throw new MenuItemWrongValue("Price input cannot be empty!");
+							decimal startPriceToSearch = decimal.Parse(startPriceInput.Replace('.', ','));
+							while (startPriceToSearch <= 0)
+							{
+								PrintWarning("Price must be more than 0!");
+								Console.Write("Enter first price to search -> ");
+								startPriceToSearch = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							}
 
 							Console.Write("Enter second price to search -> ");
-							decimal finalPriceToSearch = decimal.Parse(Console.ReadLine().Replace('.', ','));
-							ValidatePrice(finalPriceToSearch);
+							string? finalPriceInput = Console.ReadLine();
+							if (string.IsNullOrWhiteSpace(finalPriceInput))
+                                throw new MenuItemWrongValue("Price input cannot be empty!");
+							decimal finalPriceToSearch = decimal.Parse(finalPriceInput.Replace('.', ','));
+							while (finalPriceToSearch < 0)
+							{
+								PrintWarning("Price must be more than 0!");
+								Console.Write("Enter second price to search -> ");
+								finalPriceToSearch = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							}
 
-							if(startPriceToSearch > finalPriceToSearch)
+							if (startPriceToSearch > finalPriceToSearch)
 							{
 								var temp = startPriceToSearch;
 								startPriceToSearch = finalPriceToSearch;
@@ -267,7 +336,7 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -276,7 +345,7 @@ namespace RestourantServiceApp.PL
 						try
 						{
 							Console.Write("Enter name to search -> ");
-							string nameToSearch = Console.ReadLine();
+							string? nameToSearch = Console.ReadLine();
 							var itemsByName = mis.GetMenuItemsBySearch(nameToSearch).Result;
 							if (itemsByName.Count == 0)
 							{
@@ -289,7 +358,7 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -326,7 +395,9 @@ namespace RestourantServiceApp.PL
 				Console.WriteLine("5 - Search by price");
 				Console.WriteLine("6 - Search by date");
 				Console.WriteLine("7 - Search by id");
+				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine("0 - Exit");
+				Console.ResetColor();
 
 				Console.Write("\nChoose operation\n-> ");
 				string? opp = Console.ReadLine();
@@ -346,7 +417,10 @@ namespace RestourantServiceApp.PL
 						foreach (var item in allMenuItems)
 							Console.WriteLine($"{count++,2}. {item}");
 
+						Console.ForegroundColor = ConsoleColor.Red;
 						Console.WriteLine("\n0 - Finish order");
+						Console.ResetColor();
+
 						var orderItems = new List<(MenuItemReturnDto menuItemReturnDto, int Count)>();
 						while (true)
 						{
@@ -365,18 +439,23 @@ namespace RestourantServiceApp.PL
 								if (index < 1 || index > allMenuItems.Count)
 									throw new MenuItemWrongValue("Invalid selection!");
 
-								Console.Write("Enter count -> ");
-								int countItem = int.Parse(Console.ReadLine());
-								if (countItem <= 0)
-									throw new OrderItemWrongValue("Count must be greater than 0!");
-
+								int countItem;
+								while (true)
+								{
+									Console.Write("Enter count -> ");
+									countItem = int.Parse(Console.ReadLine());
+									if (countItem <= 0)
+										PrintWarning("Count must be greater than 0!");
+									else
+										break;
+								}
 								var menuItemDto = allMenuItems[index - 1];
 								orderItems.Add((menuItemDto, countItem));
 								PrintSuccess("Item added to order.");
 							}
 							catch (Exception ex)
 							{
-								PrintWarning(ex.Message);
+								PrintException(ex);
 								break;
 							}
 						}
@@ -407,10 +486,9 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
-						Console.Clear();
 						break;
 					case "3":
 						Console.Clear();
@@ -451,7 +529,7 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -461,8 +539,28 @@ namespace RestourantServiceApp.PL
 						{
 							Console.Write("Start price -> ");
 							decimal price1 = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							while (price1 < 0)
+							{
+								PrintWarning("Price must be more than 0!");
+								Console.Write("Start price -> ");
+								price1 = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							}
+
 							Console.Write("Last price -> ");
 							decimal price2 = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							while (price2 < 0)
+							{
+								PrintWarning("Price must be more than 0!");
+								Console.Write("Last price -> ");
+								price2 = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							}
+
+							if (price1 > price2)
+							{
+								var temp = price1;
+								price1 = price2;
+								price2 = temp;
+							}
 
 							var ordersByPrice = os.GetOrdersByPriceInterval(price1, price2).Result;
 							if (ordersByPrice.Count == 0)
@@ -479,7 +577,7 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -504,7 +602,7 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -536,7 +634,7 @@ namespace RestourantServiceApp.PL
 						}
 						catch (Exception ex)
 						{
-							PrintWarning(ex.Message);
+							PrintException(ex);
 							break;
 						}
 						break;
@@ -570,24 +668,19 @@ namespace RestourantServiceApp.PL
 			Console.ResetColor();
 		}
 
-
-
-		private static void ValidatePrice(decimal newItemPrice)
+		private static void PrintException(Exception ex)
 		{
-			if (newItemPrice <= 0)
-				throw new MenuItemWrongValue("Price must be more than 0!");
-		}
-
-		private static void ValidateItemName(string? newItemName)
-		{
-			if (string.IsNullOrEmpty(newItemName))
-				throw new MenuItemWrongValue("Name cannot be empty!");
-
-			for (int i = 0; i < newItemName.Length; i++)
+			if (ex is AggregateException aggregateException)
 			{
-				if (char.IsDigit(newItemName[i]))
-					throw new MenuItemWrongValue("Name cannot contain digits!");
+				var flattened = aggregateException.Flatten();
+				if (flattened.InnerExceptions.Count > 0)
+				{
+					PrintWarning(flattened.InnerExceptions[0].Message);
+					return;
+				}
 			}
+
+			PrintWarning(ex.GetBaseException().Message);
 		}
 	}
 }

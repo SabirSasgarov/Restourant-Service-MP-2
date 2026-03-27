@@ -9,10 +9,5 @@ namespace RestourantServiceApp.Core.Models
 		public MenuItem MenuItem { get; set; } = null!;
 		public Guid OrderId { get; set; }
 		public Order Order { get; set; } = null!;
-
-		override public string ToString()
-		{
-			return $"{MenuItem}, Count: {Count}";
-		}
 	}
 }

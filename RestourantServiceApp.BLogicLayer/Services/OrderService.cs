@@ -135,7 +135,10 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 			var order = orders.FirstOrDefault(o =>
 				o.OrderItems.Count == orderReturnDto.OrderItems.Count &&
-				o.OrderItems.All(oi => orderReturnDto.OrderItems.Any(dtoOi => dtoOi.MenuItemId == oi.MenuItemId && dtoOi.Count == oi.Count)));
+				o.OrderItems.All(oi => orderReturnDto.OrderItems.Any(dtoOi =>
+					dtoOi.MenuItemName.ToLower() == oi.MenuItem.Name.ToLower() &&
+					dtoOi.MenuItemPrice == oi.MenuItem.Price &&
+					dtoOi.Count == oi.Count)));
 
 			if (order == null)
 				throw new OrderNotFound("Order not found.");
