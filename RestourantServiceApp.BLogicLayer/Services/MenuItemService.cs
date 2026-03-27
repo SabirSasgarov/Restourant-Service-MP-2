@@ -26,6 +26,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		{
 			var menuItems = await _menuItemRepository
 				.GetAll()
+				.AsNoTracking()
 				.ToListAsync();
 
 			return _mapper.Map<List<MenuItemReturnDto>>(menuItems);
@@ -56,10 +57,15 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 			if (menuItem == null)
 				throw new MenuItemNotFound("Menu item not found.");
+
+			if(price == menuItem.Price && name == menuItem.Name)
+				throw new MenuItemWrongValue("No changes detected for the menu item.");
+
 			if (!string.IsNullOrWhiteSpace(name))
 				menuItem.Name = name;
-			if (price > 0)
-				menuItem.Price = price;
+
+			if (price > 0 && price != menuItem.Price)
+				menuItem.Price = price;			
 
 			_menuItemRepository.Update(menuItem);
 			await _menuItemRepository.SaveChangesAsync();
@@ -70,9 +76,6 @@ namespace RestourantServiceApp.BLogicLayer.Services
 			var items = await _menuItemRepository.GetAll(false, mi => mi.Category == category)
 				.ToListAsync();
 
-			if (items.Count == 0)
-				throw new MenuItemNotFound($"No menu items found in the category: {category}.");
-
 			return _mapper.Map<List<MenuItemReturnDto>>(items);
 		}
 
@@ -80,9 +83,6 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		{
 			var items = await _menuItemRepository.GetAll(false, mi => mi.Price >= startPrice && mi.Price <= finalPrice)
 				.ToListAsync();
-
-			if (items.Count == 0)
-				throw new MenuItemNotFound("No menu items found in the specified price range.");
 
 			return _mapper.Map<List<MenuItemReturnDto>>(items);
 		}
@@ -104,7 +104,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 
 		public async Task<MenuItem> GetMenuItemByName(MenuItemReturnDto menuItemReturnDto)
 		{
-			var menuItem = await _menuItemRepository.GetAll(false, mi => mi.Name.ToLower() == menuItemReturnDto.Name.ToLower())
+			var menuItem = await _menuItemRepository.GetAll(true, mi => mi.Name.ToLower() == menuItemReturnDto.Name.ToLower())
 				.FirstOrDefaultAsync();
 
 			if (menuItem == null)

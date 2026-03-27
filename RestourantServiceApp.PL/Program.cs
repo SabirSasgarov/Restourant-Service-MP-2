@@ -18,7 +18,7 @@ namespace RestourantServiceApp.PL
 		{
 			while (true)
 			{
-				Console.Write("1 - Menu operations, 2 - Order operations, 0 - Quit\n->");
+				Console.Write("1 - Menu operations\n2 - Order operations\n0 - Quit\n->");
 				string? opp = Console.ReadLine();
 				switch (opp)
 				{
@@ -59,29 +59,38 @@ namespace RestourantServiceApp.PL
 
 			while (true)
 			{
-				Console.WriteLine("1 - Add new item, 2 - Update item, 3 - Remove item, 4 - All items,\n" +
-					"5 - Search by categories, 6 - Search by price, 7 - Search by name, 0 - Exit");
+				PrintHeader("MENU ITEM OPERATIONS");
+				Console.WriteLine("1 - Add new item");
+				Console.WriteLine("2 - Update item");
+				Console.WriteLine("3 - Remove item");
+				Console.WriteLine("4 - All items");
+				Console.WriteLine("5 - Search by categories");
+				Console.WriteLine("6 - Search by price");
+				Console.WriteLine("7 - Search by name");
+				Console.WriteLine("0 - Exit");
 
-				Console.Write("Choose operation\n->");
+				Console.Write("\nChoose operation\n-> ");
 				string? opp = Console.ReadLine();
 				switch (opp)
 				{
 					case "1":
+						Console.Clear();
 						try
 						{
-							Console.WriteLine("Enter name for new item: ");
+							Console.Write("Enter name for new item -> ");
 							string? newItemName = Console.ReadLine();
 							ValidateItemName(newItemName);
 
-							Console.WriteLine("Enter price for new item: ");
+							Console.Write("Enter price for new item -> ");
 							decimal newItemPrice = decimal.Parse(Console.ReadLine().Replace('.', ','));
 							ValidatePrice(newItemPrice);
 
-							Console.WriteLine("Choose category for new item: ");
+							PrintHeader("CATEGORIES");
 							int counter = 1;
 							foreach (var catName in Enum.GetNames(typeof(Category)))
-								Console.WriteLine(counter++ + " - " + catName);
+								Console.WriteLine($"{counter++,2}. {catName}");
 
+							Console.Write("Choose category -> ");
 							int newItemCat = int.Parse(Console.ReadLine()) - 1;
 
 							if (newItemCat < 0 || newItemCat >= Enum.GetNames(typeof(Category)).Length)
@@ -95,151 +104,199 @@ namespace RestourantServiceApp.PL
 							};
 
 							mis.AddMenuItem(menuItemCreateDto).Wait();
+							PrintSuccess("Menu item added successfully.");
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
-						Console.Clear();
 						break;
 					case "2":
-						int count = 1;
+						Console.Clear();
 						List<MenuItemReturnDto> itemsToEdit = mis.GetMenuItems().Result;
-						foreach (var item in itemsToEdit)
+						if (itemsToEdit.Count == 0)
 						{
-							Console.WriteLine(count++ + " - " + item);
+							PrintWarning("No items found!");
+							break;
 						}
+
+						PrintHeader("ALL MENU ITEMS");
+						int count = 1;
+						foreach (var item in itemsToEdit)
+							Console.WriteLine($"{count++,2}. {item}");
+
 						try
 						{
-							Console.WriteLine("Choose to proceed: ");
+							Console.Write("Choose item to update -> ");
 							int index = int.Parse(Console.ReadLine());
-							
+
 							if (index < 1 || index > itemsToEdit.Count)
 								throw new MenuItemWrongValue("Invalid selection!");
 
 							var itemToEdit = itemsToEdit[index - 1];
 
-							Console.WriteLine("Enter new name for it: ");
+							Console.Write("Enter new name -> ");
 							string editedItemName = Console.ReadLine();
 							for (int i = 0; i < editedItemName.Length; i++)
 							{
 								if (char.IsDigit(editedItemName[i]))
 									throw new MenuItemWrongValue("Name cannot contain digits!");
 							}
+							if (string.IsNullOrWhiteSpace(editedItemName))
+								editedItemName = itemToEdit.Name;
 
-							Console.WriteLine("Enter new price for it: ");
-							decimal editedItemPrice = decimal.Parse(Console.ReadLine().Replace('.', ','));
-							ValidatePrice(editedItemPrice);
+							Console.Write("Enter new price -> ");
+							string editedItemPrice = Console.ReadLine().Replace('.', ',');
+							decimal editedItemPriceDecimal;
+							if (!string.IsNullOrWhiteSpace(editedItemPrice))
+								editedItemPriceDecimal = decimal.Parse(editedItemPrice);
+							else
+								editedItemPriceDecimal = itemToEdit.Price;
 
-							mis.EditMenuItem(itemToEdit, editedItemName, editedItemPrice).Wait();
+							mis.EditMenuItem(itemToEdit, editedItemName, editedItemPriceDecimal).Wait();
+							PrintSuccess("Menu item updated successfully.");
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
-						Console.Clear();
 						break;
 					case "3":
-						int countToRemove = 1;
+						Console.Clear();
 						var itemsToRemove = mis.GetMenuItems().Result;
+						if (itemsToRemove.Count == 0)
+						{
+							PrintWarning("No items found!");
+							break;
+						}
+
+						PrintHeader("ALL MENU ITEMS");
+						int countToRemove = 1;
 						foreach (var item in itemsToRemove)
-							Console.WriteLine(countToRemove++ + " - " + item);
+							Console.WriteLine($"{countToRemove++,2}. {item}");
 						try
 						{
-							Console.WriteLine("Choose to proceed: ");
+							Console.Write("Choose item to remove -> ");
 							int indexToRemove = int.Parse(Console.ReadLine());
 							if (indexToRemove < 1 || indexToRemove > itemsToRemove.Count)
 								throw new MenuItemWrongValue("Invalid selection!");
 
 							var itemIdToRemove = itemsToRemove[indexToRemove - 1];
 							mis.RemoveMenuItem(itemIdToRemove).Wait();
+							PrintSuccess("Menu item removed successfully.");
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
-						Console.Clear();
 						break;
 					case "4":
+						Console.Clear();
 						var allItems = mis.GetMenuItems().Result;
 						if (allItems.Count == 0)
 						{
-							Console.WriteLine("No items found!");
+							PrintWarning("No items found!");
 							break;
 						}
+						PrintHeader("ALL MENU ITEMS");
 						foreach (var item in allItems)
 							Console.WriteLine(item);
 
 						break;
 					case "5":
-						Console.WriteLine("Categories: ");
+						Console.Clear();
+						PrintHeader("CATEGORIES");
 						int catCount = 1;
 						foreach (var catName in Enum.GetNames(typeof(Category)))
-							Console.WriteLine(catCount++ + " - " + catName);
+							Console.WriteLine($"{catCount++,2}. {catName}");
 						try
 						{
-							Console.WriteLine("Enter category to search: ");
+							Console.Write("Enter category to search -> ");
 							int catToSearch = int.Parse(Console.ReadLine()) - 1;
+							if (catToSearch < 0 || catToSearch >= Enum.GetNames(typeof(Category)).Length)
+								throw new MenuItemWrongValue("Invalid category selection!");
 
 							var itemsByCat = mis.GetMenuItemsByCategory((Category)catToSearch).Result;
 							if (itemsByCat.Count == 0)
 							{
-								Console.WriteLine("No items found!");
+								PrintWarning($"No items found in '{(Category)catToSearch}' category!");
 								break;
 							}
+
+							PrintHeader("ITEMS FOUND");
 							foreach (var item in itemsByCat)
 								Console.WriteLine(item);
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
 						break;
 					case "6":
+						Console.Clear();
 						try
 						{
-							Console.WriteLine("Enter first price to search: ");
+							Console.Write("Enter first price to search -> ");
 							decimal startPriceToSearch = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							ValidatePrice(startPriceToSearch);
 
-							Console.WriteLine("Enter second price to search: ");
+							Console.Write("Enter second price to search -> ");
 							decimal finalPriceToSearch = decimal.Parse(Console.ReadLine().Replace('.', ','));
+							ValidatePrice(finalPriceToSearch);
+
+							if(startPriceToSearch > finalPriceToSearch)
+							{
+								var temp = startPriceToSearch;
+								startPriceToSearch = finalPriceToSearch;
+								finalPriceToSearch = temp;
+							}
 
 							var itemsByPrice = mis.GetMenuItemsInRange(startPriceToSearch, finalPriceToSearch).Result;
 							if (itemsByPrice.Count == 0)
 							{
-								Console.WriteLine("No items found!");
+								PrintWarning("No items found!");
 								break;
 							}
+							PrintHeader("ITEMS FOUND");
 							foreach (var item in itemsByPrice)
 								Console.WriteLine(item);
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
 						break;
 					case "7":
-						Console.WriteLine("Enter name to search: ");
-						string nameToSearch = Console.ReadLine();
-						var itemsByName = mis.GetMenuItemsBySearch(nameToSearch).Result;
-						if (itemsByName.Count == 0)
+						Console.Clear();
+						try
 						{
-							Console.WriteLine("No items found!");
+							Console.Write("Enter name to search -> ");
+							string nameToSearch = Console.ReadLine();
+							var itemsByName = mis.GetMenuItemsBySearch(nameToSearch).Result;
+							if (itemsByName.Count == 0)
+							{
+								PrintWarning("No items found!");
+								break;
+							}
+							PrintHeader("ITEMS FOUND");
+							foreach (var item in itemsByName)
+								Console.WriteLine(item);
+						}
+						catch (Exception ex)
+						{
+							PrintWarning(ex.Message);
 							break;
 						}
-						foreach (var item in itemsByName)
-							Console.WriteLine(item);
-
 						break;
 					case "0":
 						return;
 					default:
-						Console.WriteLine("Wrong operation!");
+						PrintWarning("Wrong operation!");
 						break;
 				}
 			}
@@ -261,191 +318,256 @@ namespace RestourantServiceApp.PL
 
 			while (true)
 			{
-				Console.WriteLine("1 - Add new order, 2 - Cancel order, 3 - All orders, 4 - Orders in a time interval, " +
-					"\n5 - Search by price, 6 - Search by date, 7 - Search by id, 0 - Exit");
+				PrintHeader("ORDER OPERATIONS");
+				Console.WriteLine("1 - Add new order");
+				Console.WriteLine("2 - Cancel order");
+				Console.WriteLine("3 - All orders");
+				Console.WriteLine("4 - Orders in a time interval");
+				Console.WriteLine("5 - Search by price");
+				Console.WriteLine("6 - Search by date");
+				Console.WriteLine("7 - Search by id");
+				Console.WriteLine("0 - Exit");
 
-				Console.Write("Choose Operation\n->");
+				Console.Write("\nChoose operation\n-> ");
 				string? opp = Console.ReadLine();
 				switch (opp)
 				{
 					case "1":
+						Console.Clear();
 						var allMenuItems = mis.GetMenuItems().Result;
+						if (allMenuItems.Count == 0)
+						{
+							PrintWarning("No menu items found. Please add menu items first.");
+							break;
+						}
+
+						PrintHeader("ALL MENU ITEMS");
 						int count = 1;
-						Console.WriteLine("All Menu Items: ");
 						foreach (var item in allMenuItems)
-							Console.WriteLine(count++ + " - " + item);
-						Console.WriteLine("\n0 - Finish Order!");
+							Console.WriteLine($"{count++,2}. {item}");
+
+						Console.WriteLine("\n0 - Finish order");
 						var orderItems = new List<(MenuItemReturnDto menuItemReturnDto, int Count)>();
 						while (true)
 						{
 							try
 							{
-								Console.WriteLine("Choose menuitem: ");
+								Console.Write("Choose menu item -> ");
 								int index = int.Parse(Console.ReadLine());
 
 								if (index == 0)
 								{
 									os.AddOrder(orderItems).Wait();
+									PrintSuccess("Order created successfully.");
 									break;
 								}
-								Console.WriteLine("Enter count: ");
+
+								if (index < 1 || index > allMenuItems.Count)
+									throw new MenuItemWrongValue("Invalid selection!");
+
+								Console.Write("Enter count -> ");
 								int countItem = int.Parse(Console.ReadLine());
+								if (countItem <= 0)
+									throw new OrderItemWrongValue("Count must be greater than 0!");
 
 								var menuItemDto = allMenuItems[index - 1];
 								orderItems.Add((menuItemDto, countItem));
+								PrintSuccess("Item added to order.");
 							}
 							catch (Exception ex)
 							{
-								Console.WriteLine(ex);
+								PrintWarning(ex.Message);
 								break;
 							}
 						}
-						Console.Clear();
 						break;
 					case "2":
+						Console.Clear();
 						int countToRemove = 1;
 						var allOrders = os.GetOrders().Result;
+						if (allOrders.Count == 0)
+						{
+							PrintWarning("No orders found!");
+							break;
+						}
+
+						PrintHeader("ALL ORDERS");
 						foreach (var item in allOrders)
-							Console.WriteLine(countToRemove++ + " - " + item);
+							Console.WriteLine($"{countToRemove++,2}. {item}");
 						try
 						{
-							Console.WriteLine("Choose to proceed: ");
+							Console.Write("Choose order to cancel -> ");
 							int indexToRemove = int.Parse(Console.ReadLine());
 							if (indexToRemove < 1 || indexToRemove > allOrders.Count)
 								throw new MenuItemWrongValue("Invalid selection!");
 
 							var orderToRemove = allOrders[indexToRemove - 1];
 							os.RemoveOrder(orderToRemove).Wait();
+							PrintSuccess("Order canceled successfully.");
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
 						Console.Clear();
 						break;
 					case "3":
+						Console.Clear();
 						var allOrdersToShow = os.GetOrders().Result;
 						if (allOrdersToShow.Count == 0)
 						{
-							Console.WriteLine("No orders found!");
+							PrintWarning("No orders found!");
 							break;
 						}
-						Console.WriteLine("Orders Found:");
+						PrintHeader("ORDERS FOUND");
 						foreach (var item in allOrdersToShow)
 						{
 							Console.WriteLine(item);
-							item.OrderItems.ForEach(oi => Console.WriteLine("\t" + oi));
+							item.OrderItems.ForEach(oi => Console.WriteLine($"   - {oi}"));
 						}
 						break;
 					case "4":
+						Console.Clear();
 						try
 						{
-							Console.WriteLine("Start Date: ");
+							Console.Write("Start date -> ");
 							DateTime date1 = DateTime.Parse(Console.ReadLine());
-							Console.WriteLine("Last Date: ");
+							Console.Write("Last date -> ");
 							DateTime date2 = DateTime.Parse(Console.ReadLine());
 
 							var orders = os.GetOrdersByDatesInterval(date1, date2).Result;
 							if (orders.Count == 0)
 							{
-								Console.WriteLine("No orders found!");
+								PrintWarning("No orders found!");
 								break;
 							}
-							Console.WriteLine("Orders Found:");
+							PrintHeader("ORDERS FOUND");
 							foreach (var item in orders)
 							{
 								Console.WriteLine(item);
-								item.OrderItems.ForEach(oi => Console.WriteLine("\t" + oi));
+								item.OrderItems.ForEach(oi => Console.WriteLine($"   - {oi}"));
 							}
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
 						break;
 					case "5":
+						Console.Clear();
 						try
 						{
-							Console.WriteLine("Start Price: ");
+							Console.Write("Start price -> ");
 							decimal price1 = decimal.Parse(Console.ReadLine().Replace('.', ','));
-							Console.WriteLine("Last Price: ");
+							Console.Write("Last price -> ");
 							decimal price2 = decimal.Parse(Console.ReadLine().Replace('.', ','));
 
 							var ordersByPrice = os.GetOrdersByPriceInterval(price1, price2).Result;
 							if (ordersByPrice.Count == 0)
 							{
-								Console.WriteLine("No orders found!");
+								PrintWarning("No orders found!");
 								break;
 							}
-							Console.WriteLine("Orders Found:");
+							PrintHeader("ORDERS FOUND");
 							foreach (var item in ordersByPrice)
 							{
 								Console.WriteLine(item);
-								item.OrderItems.ForEach(oi => Console.WriteLine("\t" + oi));
+								item.OrderItems.ForEach(oi => Console.WriteLine($"   - {oi}"));
 							}
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
 						break;
 					case "6":
+						Console.Clear();
 						try
 						{
-							Console.WriteLine("Enter date: ");
+							Console.Write("Enter date -> ");
 							DateTime dateToSearch = DateTime.Parse(Console.ReadLine());
 							var ordersByDate = os.GetOrdersByDate(dateToSearch).Result;
 							if (ordersByDate.Count == 0)
 							{
-								Console.WriteLine("No orders found!");
+								PrintWarning("No orders found!");
 								break;
 							}
-							Console.WriteLine("Orders Found:");
+							PrintHeader("ORDERS FOUND");
 							foreach (var item in ordersByDate)
 							{
 								Console.WriteLine(item);
-								item.OrderItems.ForEach(oi => Console.WriteLine("\t" + oi));
+								item.OrderItems.ForEach(oi => Console.WriteLine($"   - {oi}"));
 							}
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
 						break;
 					case "7":
+						Console.Clear();
 						var allOrdersToSearch = os.GetOrders().Result;
+						if (allOrdersToSearch.Count == 0)
+						{
+							PrintWarning("No orders found!");
+							break;
+						}
+
 						int countToSearch = 1;
+						PrintHeader("ALL ORDERS");
 						foreach (var item in allOrdersToSearch)
-							Console.WriteLine(countToSearch++ + " - " + item);
+							Console.WriteLine($"{countToSearch++,2}. {item}");
 						try
 						{
-							Console.WriteLine("Choose to proceed: ");
+							Console.Write("Choose order to view -> ");
 							int indexToSearch = int.Parse(Console.ReadLine());
 							if (indexToSearch < 1 || indexToSearch > allOrdersToSearch.Count)
 								throw new MenuItemWrongValue("Invalid selection!");
 
 							var orderToSearch = allOrdersToSearch[indexToSearch - 1];
 							var order = os.GetOrderByNo(orderToSearch).Result;
+							PrintHeader("ORDER DETAILS");
 							Console.WriteLine(order);
-							order.OrderItems.ForEach(oi => Console.WriteLine("\t" + oi));
+							order.OrderItems.ForEach(oi => Console.WriteLine($"   - {oi}"));
 						}
 						catch (Exception ex)
 						{
-							Console.WriteLine(ex.Message);
+							PrintWarning(ex.Message);
 							break;
 						}
 						break;
 					case "0":
 						return;
 					default:
-						Console.WriteLine("Wrong operation!");
+						PrintWarning("Wrong operation!");
 						break;
 				}
 			}
+		}
+
+		private static void PrintHeader(string title)
+		{
+			Console.ForegroundColor = ConsoleColor.Cyan;
+			Console.WriteLine($"\n==== {title} ====");
+			Console.ResetColor();
+		}
+
+		private static void PrintSuccess(string message)
+		{
+			Console.ForegroundColor = ConsoleColor.Green;
+			Console.WriteLine(message);
+			Console.ResetColor();
+		}
+
+		private static void PrintWarning(string message)
+		{
+			Console.ForegroundColor = ConsoleColor.Yellow;
+			Console.WriteLine(message);
+			Console.ResetColor();
 		}
 
 
