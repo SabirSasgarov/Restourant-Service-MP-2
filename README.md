@@ -1,4 +1,4 @@
-# Restaurant Service App
+﻿# Restaurant Service App
 
 A monolithic C# `.NET 8` console application for managing restaurant menu items and customer orders.
 
@@ -28,45 +28,45 @@ This solution follows an N-Tier structure:
 
 ```text
 Restourant Service App/
-?? README.md
-?? RestourantServiceApp.sln
-?? RestourantServiceApp.Core/
-?  ?? Models/
-?  ?  ?? Common/
-?  ?  ?  ?? BaseEntity.cs
-?  ?  ?? MenuItem.cs
-?  ?  ?? Order.cs
-?  ?  ?? OrderItem.cs
-?  ?? Enums/
-?     ?? Category.cs
-?? RestourantServiceApp.DataAccsessLayer/
-?  ?? Contexts/
-?  ?  ?? RestourantDbContext.cs
-?  ?? Interfaces/
-?  ?  ?? IRepository.cs
-?  ?? Concretes/
-?  ?  ?? Repository.cs
-?  ?? Configurations/
-?  ?  ?? MenuItemConfiguration.cs
-?  ?  ?? OrderConfiguration.cs
-?  ?  ?? OrderItemConfiguration.cs
-?  ?  ?? Seeds/
-?  ?? Migrations/
-?? RestourantServiceApp.BLogicLayer/
-?  ?? Dtos/
-?  ?  ?? MenuItemDtos/
-?  ?  ?? OrderDtos/
-?  ?? Interfaces/
-?  ?  ?? IMenuItemService.cs
-?  ?  ?? IOrderService.cs
-?  ?? Services/
-?  ?  ?? MenuItemService.cs
-?  ?  ?? OrderService.cs
-?  ?? Mappers/
-?  ?  ?? MapProfile.cs
-?  ?? Exceptions/
-?? RestourantServiceApp.PL/
-   ?? Program.cs
+├── README.md
+├── RestourantServiceApp.sln
+├── RestourantServiceApp.Core/
+│   ├── Models/
+│   │   ├── Common/
+│   │   │   └── BaseEntity.cs
+│   │   ├── MenuItem.cs
+│   │   ├── Order.cs
+│   │   └── OrderItem.cs
+│   └── Enums/
+│       └── Category.cs
+├── RestourantServiceApp.DataAccsessLayer/
+│   ├── Contexts/
+│   │   └── RestourantDbContext.cs
+│   ├── Interfaces/
+│   │   └── IRepository.cs
+│   ├── Concretes/
+│   │   └── Repository.cs
+│   ├── Configurations/
+│   │   ├── MenuItemConfiguration.cs
+│   │   ├── OrderConfiguration.cs
+│   │   ├── OrderItemConfiguration.cs
+│   │   └── Seeds/
+│   └── Migrations/
+├── RestourantServiceApp.BLogicLayer/
+│   ├── Dtos/
+│   │   ├── MenuItemDtos/
+│   │   └── OrderDtos/
+│   ├── Interfaces/
+│   │   ├── IMenuItemService.cs
+│   │   └── IOrderService.cs
+│   ├── Services/
+│   │   ├── MenuItemService.cs
+│   │   └── OrderService.cs
+│   ├── Mappers/
+│   │   └── MapProfile.cs
+│   └── Exceptions/
+└── RestourantServiceApp.PL/
+    └── Program.cs
 ```
 
 ## Domain Model Summary
