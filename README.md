@@ -95,19 +95,6 @@ Restourant Service App/
 - Filter by date
 - Show selected order details
 
-## Recent Updates
-
-- Improved console UI readability:
-  - section headers
-  - cleaner prompts
-  - colored success/warning messages
-- Improved exception visibility in console:
-  - unwraps `AggregateException` and prints root cause messages
-- Added DTO separation for order details:
-  - `OrderReturnDto` now uses `List<OrderItemReturnDto>`
-  - order item DTO intentionally does **not** expose `MenuItemId`
-- Fixed EF Core tracking conflict when editing/removing menu items repeatedly by fetching tracked entity instances where needed.
-
 ## Prerequisites
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
