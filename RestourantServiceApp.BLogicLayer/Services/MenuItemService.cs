@@ -25,8 +25,7 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		public async Task<List<MenuItemReturnDto>> GetMenuItems()
 		{
 			var menuItems = await _menuItemRepository
-				.GetAll()
-				.AsNoTracking()
+				.GetAll(false)
 				.ToListAsync();
 
 			return _mapper.Map<List<MenuItemReturnDto>>(menuItems);

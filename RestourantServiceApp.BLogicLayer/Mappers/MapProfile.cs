@@ -9,12 +9,9 @@ namespace RestourantServiceApp.BLogicLayer.Mappers
 	{
 		public MapProfile()
 		{
-
-			CreateMap<MenuItemReturnDto, MenuItem>();
 			CreateMap<MenuItem, MenuItemReturnDto>();
 
 			CreateMap<MenuItemCreateDto, MenuItem>();
-			CreateMap<MenuItem, MenuItemCreateDto>();
 
 			CreateMap<OrderItem, OrderItemReturnDto>()
 				.ForMember(dest => dest.MenuItemName, opt => opt.MapFrom(src => src.MenuItem.Name))

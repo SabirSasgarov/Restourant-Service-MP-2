@@ -11,9 +11,9 @@ namespace RestourantServiceApp.DataAccsessLayer.Concretes
 	{
 		private readonly RestourantDbContext _context;
 		private DbSet<T> Table { get; set; }
-		public Repository()
+		public Repository(RestourantDbContext context)
 		{
-			_context = new RestourantDbContext();
+			_context = context;
 			Table = _context.Set<T>();
 		}
 
@@ -47,7 +47,9 @@ namespace RestourantServiceApp.DataAccsessLayer.Concretes
 			await _context.SaveChangesAsync();
 		}
 
-		public IQueryable<T> GetAll(bool isTracking = false, Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IIncludableQueryable<T,object>>? includes = null)
+		public IQueryable<T> GetAll(bool isTracking = false, Expression<Func<T, bool>>? filter = null,
+			Func<IQueryable<T>, IIncludableQueryable<T,object>>? includes = null,
+			Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
 		{
 			var query = isTracking ? Table.AsTracking() : Table.AsNoTracking();
 
@@ -56,10 +58,11 @@ namespace RestourantServiceApp.DataAccsessLayer.Concretes
 
 			if (includes != null)
 				query = includes(query);
-			
+
+			if (orderBy != null)
+				query = orderBy(query);
 
 			return query;
-
 		}
 	}
 }

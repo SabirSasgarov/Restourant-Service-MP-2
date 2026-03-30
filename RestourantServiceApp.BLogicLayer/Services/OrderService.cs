@@ -27,8 +27,8 @@ namespace RestourantServiceApp.BLogicLayer.Services
 			var orders = await _orderRepository.GetAll(
 				false,
 				null,
-				q => q.Include(o => o.OrderItems).ThenInclude(oi => oi.MenuItem))
-				.OrderBy(o => o.Date)
+				q => q.Include(o => o.OrderItems).ThenInclude(oi => oi.MenuItem),
+				q=> q.OrderBy(o => o.Date))
 				.ToListAsync();
 
 			return _mapper.Map<List<OrderReturnDto>>(orders);

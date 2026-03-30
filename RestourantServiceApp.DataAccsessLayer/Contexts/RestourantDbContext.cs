@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RestourantServiceApp.Core.Models;
+using RestourantServiceApp.DataAccsessLayer.Configurations;
 
 namespace RestourantServiceApp.DataAccsessLayer.Contexts
 {
@@ -18,23 +19,9 @@ namespace RestourantServiceApp.DataAccsessLayer.Contexts
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.ApplyConfigurationsFromAssembly(typeof(RestourantDbContext).Assembly);
+			
 			base.OnModelCreating(modelBuilder);
 		}
-
-		//public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-		//{
-		//	var entries = ChangeTracker.Entries<Order>().ToList();
-
-		//	foreach (var entry in entries)
-		//	{
-		//		if (entry.State == EntityState.Added && entry.State == EntityState.Modified)
-		//		{
-		//			entry.Entity.Date = DateTime.Now;
-		//		}
-		//	}
-
-		//	return base.SaveChangesAsync(cancellationToken);
-		//}
 
 	}
 }
