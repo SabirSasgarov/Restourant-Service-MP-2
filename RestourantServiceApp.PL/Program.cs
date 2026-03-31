@@ -5,6 +5,7 @@ using RestourantServiceApp.BLogicLayer.Exceptions;
 using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.BLogicLayer.Mappers;
 using RestourantServiceApp.BLogicLayer.Services;
+using RestourantServiceApp.BLogicLayer.Chaching;
 using RestourantServiceApp.Core.Enums;
 using RestourantServiceApp.DataAccsessLayer.Concretes;
 using RestourantServiceApp.DataAccsessLayer.Contexts;
@@ -48,10 +49,12 @@ namespace RestourantServiceApp.PL
 		static void MenuOperations()
 		{
 			var serviceCollection = new ServiceCollection();
-			serviceCollection.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+			serviceCollection.AddScoped(typeof(Repository<>));
+			serviceCollection.AddScoped(typeof(IRepository<>), typeof(CachedRepository<>));
 			serviceCollection.AddScoped<IMenuItemService, MenuItemService>();
 			serviceCollection.AddDbContext<RestourantDbContext>();
 			serviceCollection.AddAutoMapper(opt => { opt.AddProfile(new MapProfile()); });
+			serviceCollection.AddMemoryCache();
 			serviceCollection.AddLogging();
 
 			var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -374,11 +377,13 @@ namespace RestourantServiceApp.PL
 		static void OrderOperations()
 		{
 			var serviceCollection = new ServiceCollection();
-			serviceCollection.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+			serviceCollection.AddScoped(typeof(Repository<>));
+			serviceCollection.AddScoped(typeof(IRepository<>), typeof(CachedRepository<>));
 			serviceCollection.AddScoped<IOrderService, OrderService>();
 			serviceCollection.AddScoped<IMenuItemService, MenuItemService>();
 			serviceCollection.AddDbContext<RestourantDbContext>();
 			serviceCollection.AddAutoMapper(opt => { opt.AddProfile(new MapProfile()); });
+			serviceCollection.AddMemoryCache();
 			serviceCollection.AddLogging();
 
 			var serviceProvider = serviceCollection.BuildServiceProvider();

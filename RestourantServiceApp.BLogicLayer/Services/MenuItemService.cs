@@ -1,12 +1,11 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using RestourantServiceApp.BLogicLayer.Dtos.MenuItemDtos;
 using RestourantServiceApp.BLogicLayer.Exceptions;
 using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.Core.Enums;
 using RestourantServiceApp.Core.Models;
-using RestourantServiceApp.DataAccsessLayer.Concretes;
 using RestourantServiceApp.DataAccsessLayer.Interfaces;
+using AutoMapper;
 
 namespace RestourantServiceApp.BLogicLayer.Services
 {
@@ -14,7 +13,6 @@ namespace RestourantServiceApp.BLogicLayer.Services
 	{
 		private readonly IRepository<MenuItem> _menuItemRepository;
 		private readonly IMapper _mapper;
-		private Repository<MenuItem> repository;
 
 		public MenuItemService(IRepository<MenuItem> menuItemRepository, IMapper mapper)
 		{
@@ -113,3 +111,4 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		}
 	}
 }
+

@@ -1,11 +1,11 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using RestourantServiceApp.BLogicLayer.Dtos.MenuItemDtos;
 using RestourantServiceApp.BLogicLayer.Dtos.OrderDtos;
 using RestourantServiceApp.BLogicLayer.Exceptions;
 using RestourantServiceApp.BLogicLayer.Interfaces;
 using RestourantServiceApp.Core.Models;
 using RestourantServiceApp.DataAccsessLayer.Interfaces;
+using AutoMapper;
 
 namespace RestourantServiceApp.BLogicLayer.Services
 {
@@ -147,3 +147,4 @@ namespace RestourantServiceApp.BLogicLayer.Services
 		}
 	}
 }
+
