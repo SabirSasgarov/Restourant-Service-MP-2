@@ -1,131 +1,135 @@
-﻿# Restaurant Service App
+# Restaurant Service App
 
-A monolithic C# `.NET 8` console application for managing restaurant menu items and customer orders.
+Restaurant Service App is a .NET 8 console application for managing restaurant menu items and customer orders. The solution uses a layered architecture with Entity Framework Core for SQL Server persistence, a business layer for application rules, and a console presentation layer for the interactive workflow.
 
-## Architecture
+> Note: the project and namespace names use `Restourant` in the codebase.
 
-This solution follows an N-Tier structure:
+## Features
 
-1. **`RestourantServiceApp.Core`**
-   - Domain models: `MenuItem`, `Order`, `OrderItem`
-   - Base entities and enums (for example `Category`)
+### Menu Management
 
-2. **`RestourantServiceApp.DataAccsessLayer`**
-   - `Entity Framework Core` context (`RestourantDbContext`)
-   - Repository implementation (`IRepository<T>`, `Repository<T>`)
-   - Entity configurations, seeds, and migrations
+- Add, edit, and remove menu items
+- List all menu items
+- Filter menu items by category
+- Filter menu items by price range
+- Search menu items by name
 
-3. **`RestourantServiceApp.BLogicLayer`**
-   - Business services: `MenuItemService`, `OrderService`
-   - DTOs and AutoMapper profiles
-   - Custom exceptions
+### Order Management
 
-4. **`RestourantServiceApp.PL`**
-   - Console presentation (`Program.cs`)
-   - Interactive menu/order management flow
+- Create orders from selected menu items
+- Cancel existing orders
+- List all orders
+- Filter orders by date
+- Filter orders by date interval
+- Filter orders by total price interval
+- View selected order details
 
-## Project Structure (Quick Navigation)
+## Solution Structure
 
 ```text
 Restourant Service App/
-├── README.md
-├── RestourantServiceApp.sln
-├── RestourantServiceApp.Core/
-│   ├── Models/
-│   │   ├── Common/
-│   │   │   └── BaseEntity.cs
-│   │   ├── MenuItem.cs
-│   │   ├── Order.cs
-│   │   └── OrderItem.cs
-│   └── Enums/
-│       └── Category.cs
-├── RestourantServiceApp.DataAccsessLayer/
-│   ├── Contexts/
-│   │   └── RestourantDbContext.cs
-│   ├── Interfaces/
-│   │   └── IRepository.cs
-│   ├── Concretes/
-│   │   └── Repository.cs
-│   ├── Configurations/
-│   │   ├── MenuItemConfiguration.cs
-│   │   ├── OrderConfiguration.cs
-│   │   ├── OrderItemConfiguration.cs
-│   │   └── Seeds/
-│   └── Migrations/
-├── RestourantServiceApp.BLogicLayer/
-│   ├── Dtos/
-│   │   ├── MenuItemDtos/
-│   │   └── OrderDtos/
-│   ├── Interfaces/
-│   │   ├── IMenuItemService.cs
-│   │   └── IOrderService.cs
-│   ├── Services/
-│   │   ├── MenuItemService.cs
-│   │   └── OrderService.cs
-│   ├── Mappers/
-│   │   └── MapProfile.cs
-│   └── Exceptions/
-└── RestourantServiceApp.PL/
-    └── Program.cs
+|-- Restourant Service App.sln
+|-- RestourantServiceApp.Core/
+|-- RestourantServiceApp.DataAccsessLayer/
+|-- RestourantServiceApp.BLogicLayer/
+|-- RestourantServiceApp.PL/
+`-- RestourantServiceAppBll.Test/
 ```
 
-## Domain Model Summary
+## Projects
 
-- **`MenuItem`**: menu name, price, category
-- **`Order`**: order date, total amount, collection of order items
-- **`OrderItem`**: quantity (`Count`) and foreign keys to an order and menu item
+| Project | Responsibility |
+| --- | --- |
+| `RestourantServiceApp.Core` | Domain models, base entities, and enums such as `MenuItem`, `Order`, `OrderItem`, and `Category`. |
+| `RestourantServiceApp.DataAccsessLayer` | EF Core `DbContext`, repository abstractions, entity configurations, seed data, and migrations. |
+| `RestourantServiceApp.BLogicLayer` | Menu and order services, DTOs, AutoMapper profiles, custom exceptions, and cached repository support. |
+| `RestourantServiceApp.PL` | Console application entry point and interactive user flow. |
+| `RestourantServiceAppBll.Test` | xUnit tests for the business layer using Moq and MockQueryable.Moq. |
 
-## Core Features
+## Tech Stack
 
-### Menu Operations
-- Add menu item
-- Update menu item
-- Remove menu item
-- List all menu items
-- Filter by category
-- Filter by price range
-- Search by name
-
-### Order Operations
-- Create order from selected menu items
-- Cancel order
-- List all orders
-- Filter by date interval
-- Filter by total price interval
-- Filter by date
-- Show selected order details
+- .NET 8
+- C#
+- Entity Framework Core
+- SQL Server
+- AutoMapper
+- Microsoft.Extensions.DependencyInjection
+- Microsoft.Extensions.Caching.Memory
+- xUnit, Moq, MockQueryable.Moq
 
 ## Prerequisites
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- SQL Server (or SQL Server Express / LocalDB)
+- SQL Server, SQL Server Express, or LocalDB
+- `dotnet-ef` for applying migrations
 
-## Getting Started
-
-### 1) Configure database connection
-
-Connection string is currently configured in:
-
-- `RestourantServiceApp.DataAccsessLayer/Contexts/RestourantDbContext.cs`
-
-Example:
-
-```csharp
-"Data Source=.\\MSSQLSERVER01;Initial Catalog=RestourantServiceDb;Integrated Security=True;Trust Server Certificate=True;"
-```
-
-### 2) Apply migrations
-
-From solution root:
+Install `dotnet-ef` if it is not already available:
 
 ```bash
 dotnet tool install --global dotnet-ef
+```
+
+## Configuration
+
+The database connection string is currently configured directly in:
+
+```text
+RestourantServiceApp.DataAccsessLayer/Contexts/RestourantDbContext.cs
+```
+
+Default connection string:
+
+```csharp
+Data Source=.\MSSQLSERVER01;Initial Catalog=RestourantServiceDb;Integrated Security=True;Trust Server Certificate=True;
+```
+
+Update this value if your SQL Server instance, authentication method, or database name is different.
+
+## Getting Started
+
+Restore dependencies:
+
+```bash
+dotnet restore
+```
+
+Apply database migrations:
+
+```bash
 dotnet ef database update --project RestourantServiceApp.DataAccsessLayer --startup-project RestourantServiceApp.PL
 ```
 
-### 3) Build and run
+Build the solution:
 
 ```bash
 dotnet build
+```
+
+Run the console app:
+
+```bash
 dotnet run --project RestourantServiceApp.PL
 ```
+
+## Testing
+
+Run the test suite from the solution root:
+
+```bash
+dotnet test
+```
+
+## Domain Overview
+
+| Entity | Description |
+| --- | --- |
+| `MenuItem` | Represents a restaurant menu item with a name, price, and category. |
+| `Order` | Represents a customer order with an order date, total amount, and order items. |
+| `OrderItem` | Represents a menu item inside an order, including the selected quantity. |
+
+## Development Notes
+
+- Keep migrations in `RestourantServiceApp.DataAccsessLayer/Migrations`.
+- Keep business validation inside the business layer services.
+- Use DTOs when data crosses the business layer boundary.
+- Add or update tests in `RestourantServiceAppBll.Test` when service behavior changes.
